@@ -1,0 +1,617 @@
+// ==================================================
+// MedConnect — Doctor Patient Portal
+// Prisma Schema (PostgreSQL)
+// ==================================================
+// Design notes:
+// - Single `User` table holds auth/identity; role-specific data lives in
+//   `Doctor` / `Patient` / `Admin` profile tables (1:1) so we never leak
+//   doctor-only fields onto a patient row or vice versa.
+// - Every relation a business rule depends on (messaging eligibility,
+//   review eligibility) is derivable from `Appointment`, so we don't
+//   duplicate "linked patients" lists anywhere else.
+// - Money fields use Decimal, never Float, to avoid rounding bugs on
+//   invoices/payments.
+// ==================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================================================
+// ENUMS
+// ==================================================
+
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum AppointmentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  RESCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum ConsultationType {
+  IN_PERSON
+  VIDEO
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum PaymentGateway {
+  ESEWA
+  FONEPAY
+  WALLET
+}
+
+enum NotificationType {
+  APPOINTMENT_APPROVED
+  APPOINTMENT_REJECTED
+  APPOINTMENT_CANCELLED
+  APPOINTMENT_RESCHEDULED
+  APPOINTMENT_REMINDER
+  NEW_MESSAGE
+  PRESCRIPTION_UPLOADED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  REVIEW_RECEIVED
+  DOCTOR_VERIFIED
+  SYSTEM
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  PDF
+  PRESCRIPTION
+  VOICE_NOTE
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  SEEN
+}
+
+enum DoctorVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum WalletTxnType {
+  CREDIT
+  DEBIT
+}
+
+// ==================================================
+// CORE IDENTITY
+// ==================================================
+
+model User {
+  id                String   @id @default(uuid())
+  email             String   @unique
+  phone             String?  @unique
+  passwordHash      String
+  role              Role
+  isEmailVerified   Boolean  @default(false)
+  isPhoneVerified   Boolean  @default(false)
+  isActive          Boolean  @default(true)
+
+  // Remember-me / refresh token rotation
+  refreshTokens     RefreshToken[]
+
+  // Email verification / password reset / OTP
+  otpCode           String?
+  otpExpiresAt      DateTime?
+  passwordResetToken   String?  @unique
+  passwordResetExpires  DateTime?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  lastLoginAt       DateTime?
+
+  patient           Patient?
+  doctor            Doctor?
+  admin             Admin?
+
+  notifications     Notification[]
+  sentMessages      Message[]        @relation("SentMessages")
+  wallet            Wallet?
+
+  @@index([role])
+  @@map("users")
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  revoked    Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// ==================================================
+// PROFILES
+// ==================================================
+
+model Patient {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName       String
+  lastName        String
+  avatarUrl       String?
+  dateOfBirth     DateTime?
+  gender          Gender?
+  bloodGroup      String?
+  address         String?
+  city            String?
+  emergencyContactName  String?
+  emergencyContactPhone String?
+  allergies       String?
+  chronicConditions String?
+
+  appointments    Appointment[]
+  medicalHistory  MedicalHistory[]
+  reviews         Review[]
+  favoriteDoctors FavoriteDoctor[]
+  invoices        Invoice[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("patients")
+}
+
+model Doctor {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName         String
+  lastName          String
+  avatarUrl         String?
+  gender            Gender?
+  bio               String?
+  qualification      String
+  experienceYears   Int      @default(0)
+  consultationFee   Decimal  @db.Decimal(10, 2)
+  languages         String[] @default([])
+
+  specializationId  String
+  specialization    Specialization @relation(fields: [specializationId], references: [id])
+
+  hospitalId        String?
+  hospital          Hospital? @relation(fields: [hospitalId], references: [id])
+  location          String?
+
+  licenseNumber     String   @unique
+  verificationStatus DoctorVerificationStatus @default(PENDING)
+  verificationDocs  String[] @default([])
+
+  ratingAvg         Decimal  @default(0) @db.Decimal(3, 2)
+  ratingCount       Int      @default(0)
+  totalPatients     Int      @default(0)
+  successRate       Decimal  @default(0) @db.Decimal(5, 2)
+
+  availability      DoctorAvailability[]
+  appointments      Appointment[]
+  reviews           Review[]
+  favoritedBy       FavoriteDoctor[]
+  awards            DoctorAward[]
+  certificates      DoctorCertificate[]
+  prescriptions     Prescription[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([specializationId])
+  @@index([verificationStatus])
+  @@map("doctors")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  firstName String
+  lastName  String
+  avatarUrl String?
+  createdAt DateTime @default(now())
+
+  @@map("admins")
+}
+
+// ==================================================
+// DOCTOR SUPPORTING TABLES
+// ==================================================
+
+model DoctorAvailability {
+  id         String   @id @default(uuid())
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  dayOfWeek  Int      // 0 = Sunday ... 6 = Saturday
+  startTime  String   // "09:00"
+  endTime    String   // "17:00"
+  slotDurationMinutes Int @default(30)
+  isActive   Boolean  @default(true)
+
+  @@index([doctorId])
+  @@map("doctor_availability")
+}
+
+model DoctorAward {
+  id       String @id @default(uuid())
+  doctorId String
+  doctor   Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  title    String
+  year     Int?
+  issuer   String?
+
+  @@map("doctor_awards")
+}
+
+model DoctorCertificate {
+  id        String @id @default(uuid())
+  doctorId  String
+  doctor    Doctor @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  title     String
+  fileUrl   String
+  issuedBy  String?
+  issuedAt  DateTime?
+
+  @@map("doctor_certificates")
+}
+
+model Hospital {
+  id      String   @id @default(uuid())
+  name    String
+  address String
+  city    String
+  phone   String?
+  logoUrl String?
+  doctors Doctor[]
+
+  @@map("hospitals")
+}
+
+model Specialization {
+  id          String  @id @default(uuid())
+  name        String  @unique   // e.g. "Cardiologist"
+  description String?
+  iconUrl     String?
+  doctors     Doctor[]
+  diseases    Disease[]
+
+  @@map("specializations")
+}
+
+model Disease {
+  id                String   @id @default(uuid())
+  name              String   @unique  // e.g. "Heart Disease"
+  description       String?
+  specializationId  String
+  specialization    Specialization @relation(fields: [specializationId], references: [id])
+  appointments      Appointment[]
+
+  @@index([specializationId])
+  @@map("diseases")
+}
+
+// ==================================================
+// APPOINTMENTS
+// ==================================================
+
+model Appointment {
+  id                String   @id @default(uuid())
+
+  patientId         String
+  patient           Patient  @relation(fields: [patientId], references: [id])
+
+  doctorId          String
+  doctor            Doctor   @relation(fields: [doctorId], references: [id])
+
+  diseaseId         String?
+  disease           Disease? @relation(fields: [diseaseId], references: [id])
+
+  date              DateTime
+  startTime         String
+  endTime           String
+  consultationType  ConsultationType @default(IN_PERSON)
+
+  status            AppointmentStatus @default(PENDING)
+  reasonForVisit    String?
+  cancellationReason String?
+  rescheduledFromId String?  @unique
+
+  // Video-consultation-ready fields (WebRTC integration point)
+  meetingRoomId     String?  @unique
+  meetingJoinedAtDoctor  DateTime?
+  meetingJoinedAtPatient DateTime?
+
+  chatRoom          ChatRoom?
+  prescription      Prescription?
+  review            Review?
+  invoice           Invoice?
+  payment           Payment?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([doctorId])
+  @@index([status])
+  @@index([date])
+  @@map("appointments")
+}
+
+model MedicalHistory {
+  id          String   @id @default(uuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  fileUrl     String?
+  recordedAt  DateTime @default(now())
+
+  @@index([patientId])
+  @@map("medical_history")
+}
+
+model FavoriteDoctor {
+  id         String   @id @default(uuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([patientId, doctorId])
+  @@map("favorite_doctors")
+}
+
+// ==================================================
+// MESSAGING (Socket.io backed)
+// One ChatRoom per Appointment — enforces "only message
+// people you have an appointment with" at the schema level.
+// ==================================================
+
+model ChatRoom {
+  id             String   @id @default(uuid())
+  appointmentId  String   @unique
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  messages       Message[]
+  createdAt      DateTime @default(now())
+  lastMessageAt  DateTime?
+
+  @@map("chat_rooms")
+}
+
+model Message {
+  id           String   @id @default(uuid())
+  chatRoomId   String
+  chatRoom     ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
+
+  senderId     String
+  sender       User     @relation("SentMessages", fields: [senderId], references: [id])
+
+  type         MessageType @default(TEXT)
+  content      String?     // text content, or caption for media
+  fileUrl      String?
+  fileName     String?
+
+  replyToId    String?
+  replyTo      Message?  @relation("MessageReply", fields: [replyToId], references: [id])
+  replies      Message[] @relation("MessageReply")
+
+  status       MessageStatus @default(SENT)
+  deliveredAt  DateTime?
+  seenAt       DateTime?
+  isDeleted    Boolean   @default(false)
+
+  createdAt    DateTime  @default(now())
+
+  @@index([chatRoomId])
+  @@index([senderId])
+  @@map("messages")
+}
+
+// ==================================================
+// PRESCRIPTIONS
+// ==================================================
+
+model Prescription {
+  id             String   @id @default(uuid())
+  appointmentId  String   @unique
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  doctorId       String
+  doctor         Doctor   @relation(fields: [doctorId], references: [id])
+
+  diagnosis      String
+  advice         String?
+  medicines      PrescriptionMedicine[]
+  labReports     LabReport[]
+
+  pdfUrl         String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("prescriptions")
+}
+
+model PrescriptionMedicine {
+  id             String   @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  name           String
+  dosage         String
+  frequency      String
+  durationDays   Int?
+  instructions   String?
+
+  @@map("prescription_medicines")
+}
+
+model LabReport {
+  id             String   @id @default(uuid())
+  prescriptionId String
+  prescription   Prescription @relation(fields: [prescriptionId], references: [id], onDelete: Cascade)
+  title          String
+  fileUrl        String
+  uploadedAt     DateTime @default(now())
+
+  @@map("lab_reports")
+}
+
+// ==================================================
+// REVIEWS
+// ==================================================
+
+model Review {
+  id            String   @id @default(uuid())
+  appointmentId String   @unique
+  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+
+  patientId     String
+  patient       Patient  @relation(fields: [patientId], references: [id])
+
+  doctorId      String
+  doctor        Doctor   @relation(fields: [doctorId], references: [id])
+
+  rating        Int      // 1-5
+  comment       String?
+  doctorReply   String?
+  doctorRepliedAt DateTime?
+
+  isVisible     Boolean  @default(true)
+
+  createdAt     DateTime @default(now())
+
+  @@index([doctorId])
+  @@map("reviews")
+}
+
+// ==================================================
+// PAYMENTS / WALLET
+// ==================================================
+
+model Payment {
+  id             String   @id @default(uuid())
+  appointmentId  String   @unique
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+
+  amount         Decimal  @db.Decimal(10, 2)
+  gateway        PaymentGateway
+  status         PaymentStatus @default(PENDING)
+
+  gatewayTxnId   String?  @unique
+  gatewayRefId   String?
+  rawResponse    Json?
+
+  refundedAmount Decimal? @db.Decimal(10, 2)
+  refundedAt     DateTime?
+
+  invoice        Invoice?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model Invoice {
+  id             String   @id @default(uuid())
+  invoiceNumber  String   @unique
+  appointmentId  String   @unique
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  paymentId      String?  @unique
+  payment        Payment? @relation(fields: [paymentId], references: [id])
+
+  patientId      String
+  patient        Patient  @relation(fields: [patientId], references: [id])
+
+  subtotal       Decimal  @db.Decimal(10, 2)
+  tax            Decimal  @default(0) @db.Decimal(10, 2)
+  total          Decimal  @db.Decimal(10, 2)
+  pdfUrl         String?
+
+  createdAt      DateTime @default(now())
+
+  @@map("invoices")
+}
+
+model Wallet {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance      Decimal  @default(0) @db.Decimal(10, 2)
+  transactions WalletTransaction[]
+  updatedAt    DateTime @updatedAt
+
+  @@map("wallets")
+}
+
+model WalletTransaction {
+  id        String   @id @default(uuid())
+  walletId  String
+  wallet    Wallet   @relation(fields: [walletId], references: [id], onDelete: Cascade)
+  type      WalletTxnType
+  amount    Decimal  @db.Decimal(10, 2)
+  reason    String
+  createdAt DateTime @default(now())
+
+  @@map("wallet_transactions")
+}
+
+// ==================================================
+// NOTIFICATIONS
+// ==================================================
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String
+  data      Json?
+  isRead    Boolean  @default(false)
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([userId, isRead])
+  @@map("notifications")
+}

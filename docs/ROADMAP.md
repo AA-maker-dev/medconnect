@@ -1,0 +1,88 @@
+# Build Roadmap
+
+| Phase | Scope | Status |
+|---|---|---|
+| 1 | Architecture, folder structure, DB schema, design system, project setup | ✅ Done |
+| 2 | Authentication & authorization | ✅ Done |
+| 3 | Landing page & responsive UI | ✅ Done |
+| 4 | Patient dashboard | ✅ Done |
+| 5 | Doctor dashboard | ⏳ Next |
+| 6 | Admin dashboard | Planned |
+| 7 | Appointment booking + disease-based recommendation | Planned |
+| 8 | Real-time Socket.io messaging | Planned |
+| 9 | Payments (eSewa, FonePay) | Planned |
+| 10 | Prescriptions, reviews, notifications, analytics | Planned |
+| 11 | Testing, optimization, Docker hardening, deployment docs | Planned |
+
+## Phase 1 deliverables checklist
+
+- [x] Frontend folder structure (`components`, `pages`, `layouts`, `hooks`, `context`, `services`, `utils`, `types`)
+- [x] Backend folder structure (`controllers`, `routes`, `models`, `services`, `middleware`, `prisma`, `socket`, `utils`)
+- [x] Complete Prisma schema — 24 models covering auth, profiles, appointments, messaging, prescriptions, reviews, payments/wallet, notifications
+- [x] Design token system (`tokens.css`) — color, type, spacing, shadow, motion, dark mode
+- [x] Tailwind config wired to tokens
+- [x] `docker-compose.yml` + `Dockerfile`s for backend/frontend + Postgres
+- [x] `.env.example` for both frontend and backend
+- [x] `package.json` for both frontend and backend with full dependency list
+- [x] Prisma seed script (specializations + diseases, needed by Phase 7)
+- [x] Architecture documentation
+
+## Phase 2 deliverables checklist
+
+- [x] `User`-table-backed auth: register patient, register doctor (pending admin verification), login, admin login
+- [x] JWT access tokens (15 min, in-memory on frontend, never localStorage) + refresh tokens (7d / 30d remember-me, httpOnly cookie, rotated + revocable via `RefreshToken` table)
+- [x] Refresh-token theft detection: reuse of a revoked token revokes every session for that user
+- [x] Email verification via 6-digit OTP, with resend + cooldown
+- [x] Forgot password / reset password (single-use, 30-minute expiring token; resets revoke all sessions)
+- [x] Change password (authenticated, requires current password)
+- [x] Role-based route guards on the backend (`authenticate` + `authorize` middleware) and frontend (`ProtectedRoute` / `PublicOnlyRoute`)
+- [x] Security middleware: helmet, CORS w/ credentials, rate limiting (general + strict auth-endpoint limiter + OTP-resend limiter), request-body XSS sanitization, Prisma parameterized queries (SQL-injection-safe by construction)
+- [x] Auth pages: login, admin login, register (patient/doctor), OTP verification, forgot/reset password — built on the Phase 1 design tokens
+- [x] Socket.io JWT handshake authentication (connection-level only; event handlers arrive in Phase 8)
+- [x] Public specialization/hospital endpoints (needed to make the doctor registration form functional)
+
+## Phase 3 deliverables checklist
+
+- [x] Sticky responsive navbar with hamburger drawer (mobile) and full nav (desktop): Home, Doctors, Specialties, About, Contact, Login, Register
+- [x] Mobile bottom navigation bar (touch-friendly, fixed, hidden ≥lg)
+- [x] Dark mode / light mode toggle, persisted, applied via `data-theme` + the Phase 1 token overrides
+- [x] Global toast notification system (`ToastProvider`/`useToast`), animated with Framer Motion
+- [x] Hero section: gradient background, floating animated medical icons, doctor/disease search bar, popular-search chips
+- [x] Popular Departments (specializations grid, real data)
+- [x] Top Rated Doctors, Featured Specialists (one per department), Recently Joined Doctors — all backed by a new `GET /api/doctors` endpoint with `sortBy`/`specializationId`/`limit`, verified-doctors-only
+- [x] Animated statistics counters backed by a new `GET /api/stats` endpoint
+- [x] Hospital Partners strip (real data from `GET /api/hospitals`)
+- [x] Testimonials backed by a new `GET /api/reviews/featured` endpoint (real completed-appointment reviews, patient last name shown as initial only)
+- [x] Health Tips (editorial content), Emergency Contact banner, FAQ accordion, Newsletter signup
+- [x] Footer with sitemap columns and contact details
+- [x] Loading skeletons on every data-fetching section (no layout jump, no spinner-only states)
+- [x] Seed script extended with demo hospitals, 6 verified doctors, 3 patients, and completed appointments + reviews so every section above renders real content out of the box (`docs: run npm run prisma:seed`)
+
+## Phase 4 deliverables checklist
+
+- [x] `attachPatientProfile` middleware — resolves the authenticated user's `Patient` row once per request so controllers never re-query it
+- [x] Full patient API surface under `/api/patients/me/*`: dashboard summary, profile (get/update), appointments (upcoming/past/all, paginated), medical history (list/create/delete), favorite doctors (list/add/remove), prescriptions (list, with medicines + lab reports), invoices (list), wallet (balance + transactions), notifications (list/mark-read/mark-all-read)
+- [x] Fixed a real bug caught during review: the `validate` middleware parsed and coerced `req.query` (numbers, defaults, enums) but never applied the result — pagination params were silently ignored. Now stored on `req.validatedQuery` since `req.query` can be getter-only depending on Express/Node version.
+- [x] Reusable `DashboardLayout` (sidebar + topbar) built once, meant to be shared by Phase 5/6's doctor and admin dashboards too — role-specific nav items are just a prop
+- [x] `PageTitleContext` so nested dashboard pages can set the topbar title without prop drilling through the router
+- [x] All 10 spec'd dashboard cards: Upcoming Appointments, Past Appointments, Medical History, Favorite Doctors, Prescription Downloads, Invoices, Wallet, Notifications, Profile, Settings — each a real page backed by a real endpoint, not a static mock
+- [x] Settings page reuses Phase 2's change-password and logout-all-devices endpoints — no new backend work needed there
+- [x] Seed script extended again: first demo patient now has an upcoming approved appointment, a favorite doctor, a medical history entry, a notification, a prescription with medicines, an invoice + successful payment, and a wallet welcome-bonus transaction — so logging in as `sabina.adhikari@medconnect.demo` shows a fully populated dashboard immediately
+
+## Notes for future phases
+
+- `/patient/appointments` has "Join" (video), "Prescription", and "Leave review" buttons rendered conditionally, but they're not wired to real actions yet — video join needs Phase 8/WebRTC groundwork, review submission needs a POST endpoint that Phase 10 (Reviews) will add.
+- Booking a *new* appointment isn't in Phase 4 — "Find a doctor" / "Book now" buttons currently link to the still-placeholder `/doctors` directory. Phase 7 (booking + recommendation engine) is where these become real.
+- The `DashboardLayout`/`DashboardSidebar`/`DashboardTopbar` trio was deliberately built generic (nav items as props) specifically so Phases 5 and 6 can reuse it instead of rebuilding a parallel doctor/admin shell.
+
+- `/doctors`, `/specialties`, `/about`, `/contact`, and `/search` currently render placeholders reachable from the navbar/footer/bottom-nav — Phase 4+ (and a dedicated search/directory build) should replace these with real pages. The hero search bar already routes to `/search?q=...`, so that's the first one worth building.
+- `GET /api/doctors` supports `specializationId` filtering today; the disease-based recommendation ranking (rating + success rate + availability + patient history) described in the original spec is still Phase 7 scope — Phase 3's sort options (`rating`/`recent`/`experience`) are a simpler stand-in.
+- Demo seed accounts (doctors and patients) all share the password `DemoPass123` — seed-only, never use this pattern for real accounts.
+- Doctor accounts are created with `verificationStatus: PENDING` and cannot log in until an admin approves them (Phase 6 builds that admin action) — login already enforces this. Seeded demo doctors are created pre-verified so Phase 3 has content to show.
+- `DoctorAvailability` uses day-of-week + time strings rather than
+  concrete calendar rows — Phase 7 will need a slot-generation
+  function that expands this into bookable slots for a given date
+  range, checked against existing `Appointment`s.
+- Chat room creation is not yet automated on appointment approval —
+  that hook belongs in the Phase 7 appointment-status controller.
+- SMS OTP is architecture-ready (`SMS_PROVIDER` env var) but not wired to a real provider yet — email OTP is fully functional today.

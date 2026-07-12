@@ -1,0 +1,131 @@
+import { api, setAccessToken } from './api';
+import type {
+  ApiResponse,
+  AuthUser,
+  LoginPayload,
+  RegisterDoctorPayload,
+  RegisterPatientPayload,
+} from '@/types/auth.types';
+
+interface LoginResponseData {
+  user: AuthUser;
+  accessToken: string;
+  refreshToken: string;
+}
+
+export async function registerPatient(payload: RegisterPatientPayload) {
+  const { data } = await api.post<ApiResponse<AuthUser>>(
+    '/auth/register/patient',
+    payload
+  );
+  return data;
+}
+
+export async function registerDoctor(payload: RegisterDoctorPayload) {
+  const { data } = await api.post<ApiResponse<AuthUser>>(
+    '/auth/register/doctor',
+    payload
+  );
+  return data;
+}
+
+export async function login(payload: LoginPayload) {
+  const { data } = await api.post<ApiResponse<LoginResponseData>>(
+    '/auth/login',
+    payload
+  );
+  setAccessToken(data.data.accessToken);
+  return data.data;
+}
+
+export async function adminLogin(payload: LoginPayload) {
+  const { data } = await api.post<ApiResponse<LoginResponseData>>(
+    '/auth/admin/login',
+    payload
+  );
+  setAccessToken(data.data.accessToken);
+  return data.data;
+}
+
+export async function logout() {
+  try {
+    await api.post('/auth/logout');
+  } finally {
+    setAccessToken(null);
+  }
+}
+
+export async function logoutAllDevices() {
+  try {
+    await api.post('/auth/logout-all');
+  } finally {
+    setAccessToken(null);
+  }
+}
+
+export async function verifyOtp(email: string, otp: string) {
+  const { data } = await api.post<ApiResponse<{ verified: boolean }>>(
+    '/auth/verify-otp',
+    { email, otp }
+  );
+  return data;
+}
+
+export async function resendOtp(email: string) {
+  const { data } = await api.post<ApiResponse<{ sent: boolean }>>(
+    '/auth/resend-otp',
+    { email }
+  );
+  return data;
+}
+
+export async function forgotPassword(email: string) {
+  const { data } = await api.post<ApiResponse<{ sent: boolean }>>(
+    '/auth/forgot-password',
+    { email }
+  );
+  return data;
+}
+
+export async function resetPassword(
+  token: string,
+  newPassword: string,
+  confirmPassword: string
+) {
+  const { data } = await api.post<ApiResponse<{ reset: boolean }>>(
+    '/auth/reset-password',
+    { token, newPassword, confirmPassword }
+  );
+  return data;
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+  confirmPassword: string
+) {
+  const { data } = await api.post<ApiResponse<{ changed: boolean }>>(
+    '/auth/change-password',
+    { currentPassword, newPassword, confirmPassword }
+  );
+  return data;
+}
+
+export async function fetchCurrentUser() {
+  const { data } = await api.get<ApiResponse<AuthUser & { profile: unknown }>>(
+    '/auth/me'
+  );
+  return data.data;
+}
+
+/** Called once on app load to silently restore a session from the refresh cookie. */
+export async function tryRestoreSession() {
+  try {
+    const { data } = await api.post<ApiResponse<LoginResponseData>>('/auth/refresh');
+    setAccessToken(data.data.accessToken);
+    return data.data.user;
+  } catch {
+    setAccessToken(null);
+    return null;
+  }
+}

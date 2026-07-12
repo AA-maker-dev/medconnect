@@ -1,0 +1,128 @@
+/* ==================================================
+   MedConnect Design System — Tokens
+   ==================================================
+   Direction: a real clinic, not a startup. Deep teal reads as
+   clinical trust without the generic blue/purple SaaS gradient.
+   Warm ivory background (not stark white) keeps long dashboard
+   sessions comfortable. Coral-amber is reserved for actions and
+   status — it's the only warm, saturated color in the system, so
+   it stays meaningful instead of decorative.
+
+   Signature element: the "vitals line" — a thin animated waveform
+   (like an ECG trace) used sparingly as a section divider and as
+   the loading/progress indicator. It's the one motif tying the
+   whole product back to "this is a health product," instead of
+   generic dashboard cards with no point of view.
+   ================================================== */
+
+:root {
+  /* ---- Color: Core ---- */
+  --color-teal-900: #0B3D3A;   /* primary-dark: headers, nav, doctor-facing chrome */
+  --color-teal-700: #146B63;   /* primary: buttons, links, active states */
+  --color-teal-500: #1F8F82;   /* primary-hover / accents */
+  --color-teal-100: #DCEEEA;   /* primary-tint: badges, selected rows */
+
+  --color-ivory-50: #FAF7F1;   /* app background */
+  --color-ivory-100: #F3EEE3;  /* card background (recessed) */
+  --color-paper-0:  #FFFFFF;   /* card background (raised) */
+
+  --color-coral-600: #D9694F;  /* primary action / CTA (booking, pay) */
+  --color-coral-500: #E67F63;  /* hover */
+  --color-coral-100: #FBE4DC;  /* tint / alert background */
+
+  --color-amber-600: #C68A2E;  /* pending / warning status */
+  --color-amber-100: #F7E9CC;
+
+  --color-green-600: #2F8F5B;  /* success / approved / online */
+  --color-green-100: #DFF2E6;
+
+  --color-red-600:   #C2453A;  /* error / rejected / destructive */
+  --color-red-100:   #F7DEDB;
+
+  --color-slate-900: #1C2321;  /* primary text */
+  --color-slate-700: #3E4744;  /* secondary text */
+  --color-slate-500: #6B7370;  /* muted text / placeholders */
+  --color-slate-300: #C7CDC9;  /* borders */
+  --color-slate-100: #E9ECE9;  /* dividers, disabled fills */
+
+  /* ---- Dark mode overrides (applied via [data-theme="dark"]) ---- */
+  --color-dark-bg:        #0E1614;
+  --color-dark-surface:   #16211E;
+  --color-dark-surface-2: #1D2B27;
+  --color-dark-border:    #2A3833;
+  --color-dark-text:      #EDEFEC;
+  --color-dark-text-muted:#9AA6A1;
+
+  /* ---- Typography ---- */
+  --font-display: 'Fraunces', 'Georgia', serif;        /* headings — grounded, institutional serif */
+  --font-body: 'Inter', -apple-system, sans-serif;      /* UI text */
+  --font-mono: 'IBM Plex Mono', 'SFMono-Regular', monospace; /* timestamps, invoice numbers, data */
+
+  --text-xs:   0.75rem;   /* 12px */
+  --text-sm:   0.875rem;  /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg:   1.125rem;  /* 18px */
+  --text-xl:   1.375rem;  /* 22px */
+  --text-2xl:  1.75rem;   /* 28px */
+  --text-3xl:  2.25rem;   /* 36px */
+  --text-4xl:  3rem;      /* 48px */
+  --text-5xl:  3.75rem;   /* 60px */
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  /* ---- Spacing scale (4px base) ---- */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* ---- Radius ---- */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  /* ---- Shadow (soft, warm-tinted — not generic black shadows) ---- */
+  --shadow-sm: 0 1px 2px rgba(28, 35, 33, 0.06);
+  --shadow-md: 0 4px 16px rgba(28, 35, 33, 0.08);
+  --shadow-lg: 0 12px 32px rgba(28, 35, 33, 0.12);
+  --shadow-glass: 0 8px 32px rgba(11, 61, 58, 0.10);
+
+  /* ---- Glassmorphism surface (used sparingly: nav, modals, video call overlay) ---- */
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.35);
+  --glass-blur: 16px;
+
+  /* ---- Motion ---- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+
+  /* ---- Z-index scale ---- */
+  --z-nav: 100;
+  --z-dropdown: 200;
+  --z-modal: 300;
+  --z-toast: 400;
+  --z-tooltip: 500;
+}
+
+[data-theme='dark'] {
+  --color-ivory-50: var(--color-dark-bg);
+  --color-ivory-100: var(--color-dark-surface);
+  --color-paper-0: var(--color-dark-surface-2);
+  --color-slate-900: var(--color-dark-text);
+  --color-slate-700: var(--color-dark-text-muted);
+  --color-slate-300: var(--color-dark-border);
+  --color-slate-100: var(--color-dark-border);
+  --glass-bg: rgba(22, 33, 30, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.08);
+}
