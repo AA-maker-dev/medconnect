@@ -29,6 +29,20 @@ import NotificationsPage from '@/pages/patient/Notifications';
 import PatientProfilePage from '@/pages/patient/Profile';
 import PatientSettingsPage from '@/pages/patient/Settings';
 
+import { DoctorDashboardLayout } from '@/layouts/DoctorDashboardLayout';
+import DoctorDashboardPage from '@/pages/doctor/Dashboard';
+import DoctorAppointmentsPage from '@/pages/doctor/Appointments';
+import DoctorPatientsPage from '@/pages/doctor/Patients';
+import DoctorPatientHistoryPage from '@/pages/doctor/PatientHistory';
+import DoctorMessagesPage from '@/pages/doctor/Messages';
+import DoctorPrescriptionsPage from '@/pages/doctor/Prescriptions';
+import DoctorAvailabilityPage from '@/pages/doctor/Availability';
+import DoctorRevenuePage from '@/pages/doctor/Revenue';
+import DoctorWalletPage from '@/pages/doctor/Wallet';
+import DoctorNotificationsPage from '@/pages/doctor/Notifications';
+import DoctorProfilePage from '@/pages/doctor/Profile';
+import DoctorSettingsPage from '@/pages/doctor/Settings';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 30_000 },
@@ -104,10 +118,20 @@ export default function App() {
                   </Route>
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={['DOCTOR']} />}>
-                  <Route
-                    path="/doctor/dashboard"
-                    element={<DashboardPlaceholder label="Doctor" />}
-                  />
+                  <Route path="/doctor" element={<DoctorDashboardLayout />}>
+                    <Route path="dashboard" element={<DoctorDashboardPage />} />
+                    <Route path="appointments" element={<DoctorAppointmentsPage />} />
+                    <Route path="patients" element={<DoctorPatientsPage />} />
+                    <Route path="patients/:patientId" element={<DoctorPatientHistoryPage />} />
+                    <Route path="messages" element={<DoctorMessagesPage />} />
+                    <Route path="prescriptions" element={<DoctorPrescriptionsPage />} />
+                    <Route path="availability" element={<DoctorAvailabilityPage />} />
+                    <Route path="revenue" element={<DoctorRevenuePage />} />
+                    <Route path="wallet" element={<DoctorWalletPage />} />
+                    <Route path="notifications" element={<DoctorNotificationsPage />} />
+                    <Route path="profile" element={<DoctorProfilePage />} />
+                    <Route path="settings" element={<DoctorSettingsPage />} />
+                  </Route>
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                   <Route

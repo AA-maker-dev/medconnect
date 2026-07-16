@@ -4,6 +4,7 @@ import publicRoutes from './public.routes';
 import doctorRoutes from './doctor.routes';
 import reviewRoutes from './review.routes';
 import patientRoutes from './patient.routes';
+import doctorDashboardRoutes from './doctorDashboard.routes';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ router.use('/', publicRoutes);
 router.use('/doctors', doctorRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/patients', patientRoutes);
+router.use('/doctor', doctorDashboardRoutes);
 
 // Phase 7+: router.use('/appointments', appointmentRoutes);
 // Phase 8+: socket namespace registered separately in src/socket

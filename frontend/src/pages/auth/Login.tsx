@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Mail } from 'lucide-react';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -64,6 +65,7 @@ export default function LoginPage() {
           type="email"
           autoComplete="email"
           placeholder="you@example.com"
+          icon={<Mail className="h-4 w-4" />}
           error={errors.email?.message}
           {...register('email')}
         />

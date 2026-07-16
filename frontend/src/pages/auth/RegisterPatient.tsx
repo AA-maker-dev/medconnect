@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Mail, Phone, User } from 'lucide-react';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -57,12 +58,14 @@ export default function RegisterPatientPage() {
           <Input
             label="First name"
             autoComplete="given-name"
+            icon={<User className="h-4 w-4" />}
             error={errors.firstName?.message}
             {...register('firstName')}
           />
           <Input
             label="Last name"
             autoComplete="family-name"
+            icon={<User className="h-4 w-4" />}
             error={errors.lastName?.message}
             {...register('lastName')}
           />
@@ -72,6 +75,7 @@ export default function RegisterPatientPage() {
           label="Email address"
           type="email"
           autoComplete="email"
+          icon={<Mail className="h-4 w-4" />}
           error={errors.email?.message}
           {...register('email')}
         />
@@ -81,6 +85,7 @@ export default function RegisterPatientPage() {
           type="tel"
           autoComplete="tel"
           placeholder="+977 98XXXXXXXX"
+          icon={<Phone className="h-4 w-4" />}
           error={errors.phone?.message}
           {...register('phone')}
         />

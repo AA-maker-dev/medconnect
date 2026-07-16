@@ -6,8 +6,8 @@
 | 2 | Authentication & authorization | ✅ Done |
 | 3 | Landing page & responsive UI | ✅ Done |
 | 4 | Patient dashboard | ✅ Done |
-| 5 | Doctor dashboard | ⏳ Next |
-| 6 | Admin dashboard | Planned |
+| 5 | Doctor dashboard | ✅ Done |
+| 6 | Admin dashboard | ⏳ Next |
 | 7 | Appointment booking + disease-based recommendation | Planned |
 | 8 | Real-time Socket.io messaging | Planned |
 | 9 | Payments (eSewa, FonePay) | Planned |
@@ -69,7 +69,29 @@
 - [x] Settings page reuses Phase 2's change-password and logout-all-devices endpoints — no new backend work needed there
 - [x] Seed script extended again: first demo patient now has an upcoming approved appointment, a favorite doctor, a medical history entry, a notification, a prescription with medicines, an invoice + successful payment, and a wallet welcome-bonus transaction — so logging in as `sabina.adhikari@medconnect.demo` shows a fully populated dashboard immediately
 
+## Auth pages redesign (between Phase 4 and 5)
+
+- [x] `AuthLayout` rebuilt: animated gradient mesh, floating proof badges (verified doctors / rating / patient count), a glass-style form card, and the landing page's "vitals trace" motif reused for brand continuity
+- [x] `Input` gained an optional `icon` prop; `PasswordInput` rebuilt with a lock icon and a flex-based show/hide toggle (previously used a fragile hardcoded pixel offset that would misalign if label/height ever changed)
+- [x] `Button`/`Select`/`Input` bumped to a consistent `h-12` / `rounded-lg` scale for a slightly more premium feel
+- [x] Login, Register (patient/doctor), Admin Login, Forgot Password all got contextual icons (mail, lock, user, phone, graduation cap, badge-check)
+- [x] Register-choice screen rebuilt with gradient icon tiles and hover motion instead of flat cards
+
+## Phase 5 deliverables checklist
+
+- [x] `attachDoctorProfile` middleware, mirroring Phase 4's `attachPatientProfile`
+- [x] Doctor dashboard API mounted at `/api/doctor` (singular — deliberately separate from the public `/api/doctors` directory to avoid the `/:id` route swallowing `/me/*` requests)
+- [x] Dashboard summary, profile (get/update), appointments (today/upcoming/requests/history, paginated), appointment status updates (approve/reject/reschedule/complete/cancel — each triggers a patient notification, and approval auto-creates the Phase 8 chat room), unique-patients list + per-patient history, revenue analytics (monthly bucketed, completion rate), availability schedule (add/list/delete), wallet, prescriptions (list/create), notifications (list/mark-read/mark-all-read)
+- [x] All 10 spec'd doctor dashboard cards: Today's Appointments, Upcoming Patients, Appointment Requests, Patient History, Messages, Wallet, Revenue Analytics, Profile, Availability Schedule, Prescription Management
+- [x] Revenue Analytics page includes a real bar chart (recharts) of monthly revenue, not just numbers
+- [x] Messages page is an honest placeholder explaining Phase 8 scope rather than a dead link or fake UI
+- [x] Seed script extended: weekly availability (Mon–Fri, 9–5) for the first two demo doctors, plus one pending appointment request so "Appointment Requests" has something to act on immediately
+
 ## Notes for future phases
+
+- Doctor "Add prescription" from the Appointments/history tab currently just shows a button — full inline creation from that context (vs. the dedicated Prescriptions page) can be wired later; the dedicated page's create flow is fully functional today.
+- Reschedule is implemented in the backend (`updateAppointmentStatus` accepts `date`/`startTime`/`endTime` when status is `RESCHEDULED`) but the frontend Appointments page doesn't yet have a reschedule UI (date/time picker) — only approve/reject/complete buttons. Worth adding alongside Phase 7's slot-picking UI, since they'll share a component.
+- `/doctor/appointments` "Mark completed" doesn't yet prompt for a prescription — a natural follow-up affordance once the two flows are visually connected.
 
 - `/patient/appointments` has "Join" (video), "Prescription", and "Leave review" buttons rendered conditionally, but they're not wired to real actions yet — video join needs Phase 8/WebRTC groundwork, review submission needs a POST endpoint that Phase 10 (Reviews) will add.
 - Booking a *new* appointment isn't in Phase 4 — "Find a doctor" / "Book now" buttons currently link to the still-placeholder `/doctors` directory. Phase 7 (booking + recommendation engine) is where these become real.

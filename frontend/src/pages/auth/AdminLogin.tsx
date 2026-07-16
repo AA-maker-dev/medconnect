@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ShieldCheck } from 'lucide-react';
+import { Mail, ShieldCheck } from 'lucide-react';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -41,9 +41,11 @@ export default function AdminLoginPage() {
       subtitle="Restricted access — MedConnect staff only."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-        <div className="flex items-center gap-2 text-teal-700 mb-1">
-          <ShieldCheck className="h-5 w-5" />
-          <span className="text-sm font-semibold">Administrator access</span>
+        <div className="flex items-center gap-2 text-teal-700 mb-1 bg-teal-100 rounded-lg px-3 py-2 w-fit">
+          <ShieldCheck className="h-4 w-4" />
+          <span className="text-xs font-semibold uppercase tracking-wide">
+            Administrator access
+          </span>
         </div>
 
         {serverError && <Alert variant="error">{serverError}</Alert>}
@@ -52,6 +54,7 @@ export default function AdminLoginPage() {
           label="Admin email"
           type="email"
           autoComplete="email"
+          icon={<Mail className="h-4 w-4" />}
           error={errors.email?.message}
           {...register('email')}
         />

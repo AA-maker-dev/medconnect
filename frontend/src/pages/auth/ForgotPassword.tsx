@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Mail } from 'lucide-react';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -58,6 +59,7 @@ export default function ForgotPasswordPage() {
             label="Email address"
             type="email"
             autoComplete="email"
+            icon={<Mail className="h-4 w-4" />}
             error={errors.email?.message}
             {...register('email')}
           />

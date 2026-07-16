@@ -522,6 +522,55 @@ async function seedPatientDashboardContent(doctorIds: string[], patientIds: stri
   console.log('  ✓ Dashboard demo content seeded for first demo patient');
 }
 
+async function seedDoctorDashboardContent(doctorIds: string[], patientIds: string[]) {
+  if (doctorIds.length < 2 || patientIds.length === 0) return;
+  console.log('Seeding doctor dashboard content (availability, appointment requests)...');
+
+  const [doctorA, doctorB] = doctorIds;
+
+  // Weekly availability, Mon–Fri 9am–5pm, for the first two demo doctors
+  for (const doctorId of [doctorA, doctorB]) {
+    const existing = await prisma.doctorAvailability.findFirst({ where: { doctorId } });
+    if (existing) continue;
+
+    for (let day = 1; day <= 5; day++) {
+      await prisma.doctorAvailability.create({
+        data: {
+          doctorId,
+          dayOfWeek: day,
+          startTime: '09:00',
+          endTime: '17:00',
+          slotDurationMinutes: 30,
+          isActive: true,
+        },
+      });
+    }
+  }
+
+  // A pending appointment request so the "Appointment Requests" card has
+  // something to approve/reject on first login.
+  const secondaryPatientId = patientIds[1 % patientIds.length];
+  const existingRequest = await prisma.appointment.findFirst({
+    where: { doctorId: doctorA, patientId: secondaryPatientId, status: 'PENDING' },
+  });
+  if (!existingRequest) {
+    await prisma.appointment.create({
+      data: {
+        patientId: secondaryPatientId,
+        doctorId: doctorA,
+        date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+        startTime: '14:00',
+        endTime: '14:30',
+        status: 'PENDING',
+        consultationType: 'IN_PERSON',
+        reasonForVisit: 'Persistent headache for the past week',
+      },
+    });
+  }
+
+  console.log('  ✓ Availability and appointment requests seeded');
+}
+
 async function main() {
   await seedSpecializationsAndDiseases();
   const hospitalMap = await seedHospitals();
@@ -529,6 +578,7 @@ async function main() {
   const patientIds = await seedDemoPatients();
   await seedDemoReviews(doctorIds, patientIds);
   await seedPatientDashboardContent(doctorIds, patientIds);
+  await seedDoctorDashboardContent(doctorIds, patientIds);
 
   console.log('Seed complete.');
   console.log(`Demo account password for all seeded users: ${DEMO_PASSWORD}`);

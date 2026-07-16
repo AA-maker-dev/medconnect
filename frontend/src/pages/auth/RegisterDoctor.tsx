@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Mail, Phone, User, GraduationCap, BadgeCheck } from 'lucide-react';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Input } from '@/components/ui/Input';
 import { PasswordInput } from '@/components/ui/PasswordInput';
@@ -71,12 +72,14 @@ export default function RegisterDoctorPage() {
           <Input
             label="First name"
             autoComplete="given-name"
+            icon={<User className="h-4 w-4" />}
             error={errors.firstName?.message}
             {...register('firstName')}
           />
           <Input
             label="Last name"
             autoComplete="family-name"
+            icon={<User className="h-4 w-4" />}
             error={errors.lastName?.message}
             {...register('lastName')}
           />
@@ -86,6 +89,7 @@ export default function RegisterDoctorPage() {
           label="Email address"
           type="email"
           autoComplete="email"
+          icon={<Mail className="h-4 w-4" />}
           error={errors.email?.message}
           {...register('email')}
         />
@@ -94,6 +98,7 @@ export default function RegisterDoctorPage() {
           label="Phone number (optional)"
           type="tel"
           placeholder="+977 98XXXXXXXX"
+          icon={<Phone className="h-4 w-4" />}
           error={errors.phone?.message}
           {...register('phone')}
         />
@@ -110,6 +115,7 @@ export default function RegisterDoctorPage() {
         <Input
           label="Qualification"
           placeholder="e.g. MBBS, MD (Cardiology)"
+          icon={<GraduationCap className="h-4 w-4" />}
           error={errors.qualification?.message}
           {...register('qualification')}
         />
@@ -133,6 +139,7 @@ export default function RegisterDoctorPage() {
 
         <Input
           label="Medical license number"
+          icon={<BadgeCheck className="h-4 w-4" />}
           error={errors.licenseNumber?.message}
           hint="Verified by our admin team before your profile goes live."
           {...register('licenseNumber')}
