@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
-import { prisma } from '../config/prisma';
+import { prisma } from '../config/prisma';;
 
 /**
  * Landing-page testimonials: highly-rated, visible reviews only. Never
