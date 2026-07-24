@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { ApiError } from '../utils/ApiError';
-import { asyncHandler } from '../utils/asyncHandler';
+import { asyncHandler } from '../utils/asyncHandler';;
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
+  // eslint-disable-next-line @typescript-eslint/no-namespace 
   namespace Express {
     interface Request {
       doctorId?: string;
