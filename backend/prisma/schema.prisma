@@ -1,7 +1,7 @@
 // ==================================================
 // MedConnect — Doctor Patient Portal
 // Prisma Schema (PostgreSQL)
-// ==================================================
+// ===================================================
 // Design notes:
 // - Single `User` table holds auth/identity; role-specific data lives in
 //   `Doctor` / `Patient` / `Admin` profile tables (1:1) so we never leak
