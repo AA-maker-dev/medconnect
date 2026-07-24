@@ -4,7 +4,7 @@ import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
 import { ApiError } from '../utils/ApiError';
 import { env } from '../config/env';
-import * as authService from '../services/auth.service';
+import * as authService from '../services/auth.service';;
 
 const REFRESH_COOKIE_NAME = 'medconnect_refresh_token';
 
