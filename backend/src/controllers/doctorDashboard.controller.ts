@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { AppointmentStatus } from '@prisma/client';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
-import * as doctorService from '../services/doctor.service';
+import * as doctorService from '../services/doctor.service';;
 
 export const getDashboardSummary = asyncHandler(async (req: Request, res: Response) => {
   const summary = await doctorService.getDashboardSummary(req.doctorId!, req.user!.id);
