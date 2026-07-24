@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { AnyZodObject, ZodError } from 'zod';
-import { ApiError } from '../utils/ApiError';
+import { ApiError } from '../utils/ApiError';;
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
