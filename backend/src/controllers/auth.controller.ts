@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Role } from '@prisma/client';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
-import { ApiError } from '../utils/ApiError';
+import { ApiError } from '../utils/ApiError';;
 import { env } from '../config/env';
 import * as authService from '../services/auth.service';
 
