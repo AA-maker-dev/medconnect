@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
-import { ApiError } from '../utils/ApiError';;
+import { ApiError } from '../utils/ApiError';
 import { logger } from '../utils/logger';
 import { env } from '../config/env';
 
