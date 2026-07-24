@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { Prisma } from '@prisma/client';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
-import { ApiError } from '../utils/ApiError';;
+import { ApiError } from '../utils/ApiError';
 import { prisma } from '../config/prisma';
 
 const DOCTOR_CARD_SELECT = {
