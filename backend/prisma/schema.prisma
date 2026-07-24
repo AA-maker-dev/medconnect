@@ -11,7 +11,7 @@
 //   duplicate "linked patients" lists anywhere else.
 // - Money fields use Decimal, never Float, to avoid rounding bugs on
 //   invoices/payments.
-// ==================================================
+// ===================================================
 
 generator client {
   provider = "prisma-client-js"
