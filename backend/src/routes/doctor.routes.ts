@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import * as doctorController from '../controllers/doctor.controller';
 
-const router = Router();
+const router = Router();;
 
 router.get('/', doctorController.listDoctors);
 router.get('/:id', doctorController.getDoctorById);
