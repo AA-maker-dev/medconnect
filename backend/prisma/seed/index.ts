@@ -7,7 +7,7 @@
  * partners, testimonials) has real data to render in development — none
  * of this is required in production, where real signups populate it.
  *
- * Run with: npm run prisma:seed .
+ * Run with: npm run prisma:seed 
  */
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
