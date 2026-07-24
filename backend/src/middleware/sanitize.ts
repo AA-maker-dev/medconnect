@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';;
 import xss from 'xss';
 
 function sanitizeValue(value: unknown): unknown {
