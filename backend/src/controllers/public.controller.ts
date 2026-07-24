@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
-import { sendSuccess } from '../utils/ApiResponse';
+import { sendSuccess } from '../utils/ApiResponse';;
 import { prisma } from '../config/prisma';
 
 export const listSpecializations = asyncHandler(async (_req: Request, res: Response) => {
