@@ -1,6 +1,6 @@
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('PATIENT', 'DOCTOR', 'ADMIN');
-.
+
 -- CreateEnum
 CREATE TYPE "Gender" AS ENUM ('MALE', 'FEMALE', 'OTHER', 'PREFER_NOT_TO_SAY');
 
