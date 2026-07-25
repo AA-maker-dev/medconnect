@@ -42,8 +42,8 @@ export const listDoctors = asyncHandler(async (req: Request, res: Response) => {
     sortBy === 'recent'
       ? [{ createdAt: 'desc' }]
       : sortBy === 'experience'
-      ? [{ experienceYears: 'desc' }]
-      : [{ ratingAvg: 'desc' }, { ratingCount: 'desc' }];
+        ? [{ experienceYears: 'desc' }]
+        : [{ ratingAvg: 'desc' }, { ratingCount: 'desc' }];
 
   const doctors = await prisma.doctor.findMany({
     where: {
