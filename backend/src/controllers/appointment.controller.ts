@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { prisma } from '../config/prisma';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
-import * as appointmentService from '../services/appointment.service';
+import * as appointmentService from 'services/appointment.service';
 
 export const getRecommendedDoctors = asyncHandler(async (req: Request, res: Response) => {
     const { diseaseId, limit } = req.validatedQuery as { diseaseId: string; limit: number };
