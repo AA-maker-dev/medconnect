@@ -5,7 +5,7 @@ import { validate } from '../middleware/validate';
 import * as doctorDashboardController from '../controllers/doctorDashboard.controller';
 import {
   updateDoctorProfileSchema,
-  appointmentListQuerySchema,
+  appointmentListQuerySchema, 
   updateAppointmentStatusSchema,
   availabilitySlotSchema,
   createPrescriptionSchema,
