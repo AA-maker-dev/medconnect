@@ -7,3 +7,4 @@ router.get('/', doctorController.listDoctors);
 router.get('/:id', doctorController.getDoctorById);
 
 export default router;
+ 
