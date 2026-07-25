@@ -3,7 +3,7 @@ import { Response } from 'express';
 export function sendSuccess<T>(
   res: Response,
   statusCode: number,
-  message: string,
+  message: string, 
   data?: T,
   meta?: Record<string, unknown>
 ) {
