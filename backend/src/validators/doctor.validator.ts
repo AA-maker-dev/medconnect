@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const updateDoctorProfileSchema = z.object({
-  body: z.object({
+  body: z.object({ 
     firstName: z.string().trim().min(1).optional(),
     lastName: z.string().trim().min(1).optional(),
     avatarUrl: z.string().url().optional().nullable(),
