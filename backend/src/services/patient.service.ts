@@ -3,7 +3,7 @@ import { prisma } from '../config/prisma';
 import { ApiError } from '../utils/ApiError';
 
 const DOCTOR_SUMMARY_SELECT = {
-  id: true,
+  id: true, 
   firstName: true,
   lastName: true,
   avatarUrl: true,
