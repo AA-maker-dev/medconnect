@@ -6,7 +6,7 @@ import reviewRoutes from './review.routes';
 import patientRoutes from './patient.routes';
 import doctorDashboardRoutes from './doctorDashboard.routes';
 import adminRoutes from './admin.routes';
-import appointmentRoutes from './appointment.routes';
+import appointmentRoutes from './appointment.routes'; 
 
 const router = Router();
 
