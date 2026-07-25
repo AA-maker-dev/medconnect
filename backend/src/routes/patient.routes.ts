@@ -3,7 +3,7 @@ import { authenticate, authorize } from '../middleware/authenticate';
 import { attachPatientProfile } from '../middleware/attachPatientProfile';
 import { validate } from '../middleware/validate';
 import * as patientController from '../controllers/patient.controller';
-import {
+import { 
   updatePatientProfileSchema,
   listAppointmentsQuerySchema,
   createMedicalHistorySchema,
