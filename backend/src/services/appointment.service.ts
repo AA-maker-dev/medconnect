@@ -6,7 +6,7 @@ const DOCTOR_CARD_SELECT = {
   id: true,
   firstName: true,
   lastName: true,
-  avatarUrl: true,
+  avatarUrl: true, 
   qualification: true,
   experienceYears: true,
   consultationFee: true,
