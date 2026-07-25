@@ -1,100 +1,77 @@
-# Phase 5 + Auth Redesign — Update Instructions
+# Phase 7 (Appointment Booking + Disease-Based Recommendation) — Update Instructions
 
-This zip contains **only new or changed files**, at the exact path they
-belong to inside your existing `medconnect-phase1-to-4` project. It does
-NOT contain the full project — copy these into your existing folder,
-overwriting where a file already exists.
+This zip contains only new or changed files, at their exact project paths.
 
 ## How to apply
 
-From inside this extracted update folder:
-
 ```bash
-# Adjust the destination path to wherever your project actually lives
+cd phase7-output   # wherever you extracted this zip
+
 cp -r backend/. ~/Github/medconnect-phase1-to-4/backend/
 cp -r frontend/. ~/Github/medconnect-phase1-to-4/frontend/
 cp -r docs/. ~/Github/medconnect-phase1-to-4/docs/
 ```
 
-That's it — every file below either already existed at that exact path
-(and gets overwritten) or is brand new (and gets created, along with the
-`doctor/` pages folder if it doesn't exist yet).
+## What's in it
 
-## What changed and why
+### New backend files
 
-### 1. Auth pages redesign
+- `backend/src/validators/appointment.validator.ts`
+- `backend/src/services/appointment.service.ts` — the recommendation engine, slot generation, and booking logic
+- `backend/src/controllers/appointment.controller.ts`
+- `backend/src/routes/appointment.routes.ts` — mounted at `/api/appointments`
 
-| File | What changed |
-|---|---|
-| `frontend/src/layouts/AuthLayout.tsx` | Fully rebuilt — animated gradient mesh background, floating "verified doctors / rating / patient count" badges, glass-style form card, reused the landing page's animated "vitals trace" line for brand continuity |
-| `frontend/src/components/ui/Input.tsx` | Added an optional `icon` prop (mail, user, phone icons now sit inside fields) |
-| `frontend/src/components/ui/PasswordInput.tsx` | Rebuilt with a lock icon and proper flex-based positioning for the show/hide toggle (the old version used a hardcoded pixel offset that could misalign) |
-| `frontend/src/components/ui/Select.tsx`, `Button.tsx` | Bumped to a consistent `h-12` / `rounded-lg` scale to match the redesigned inputs |
-| `frontend/src/pages/auth/Login.tsx`, `RegisterPatient.tsx`, `RegisterDoctor.tsx`, `AdminLogin.tsx`, `ForgotPassword.tsx`, `RegisterChoice.tsx` | Added contextual icons to fields; `RegisterChoice.tsx` rebuilt with gradient icon tiles and hover motion |
+### Modified backend files
 
-**No backend changes for this part** — purely visual, nothing to migrate or restart beyond the frontend dev server.
+- `backend/src/controllers/public.controller.ts` — added `GET /api/diseases`
+- `backend/src/routes/public.routes.ts` — registers the diseases route
+- `backend/src/routes/index.ts` — registers the new `/appointments` router
+- `backend/src/middleware/authenticate.ts` — added `optionalAuthenticate`: populates `req.user` if a valid token is present but never blocks the request otherwise. Used so doctor recommendations are browsable by anyone, but personalized (a "you've seen this doctor before" boost) when a patient happens to be logged in.
+- `backend/src/controllers/doctor.controller.ts` — unrelated bug fix carried over from Phase 6 review: if you already applied the Phase 6 zip, this file is identical to what you have. If you skipped straight to Phase 7, this brings in the `user.isActive` filter on the public doctor directory.
+- `backend/prisma/seed/index.ts` — availability is now seeded for all 6 demo doctors (previously just 2), so booking has real slots across the whole roster
 
-### 2. Phase 5 — Doctor Dashboard
+### New frontend files
 
-**New backend files** (doctor-authenticated API, mounted at `/api/doctor` — singular, deliberately kept separate from the existing public `/api/doctors` directory so `/me/*` routes can't collide with the public `/:id` route):
-- `backend/src/middleware/attachDoctorProfile.ts`
-- `backend/src/validators/doctor.validator.ts`
-- `backend/src/services/doctor.service.ts`
-- `backend/src/controllers/doctorDashboard.controller.ts`
-- `backend/src/routes/doctorDashboard.routes.ts`
+- `frontend/src/types/appointment.types.ts`
+- `frontend/src/services/appointment.service.ts`
+- `frontend/src/pages/public/DoctorDirectory.tsx` — replaces the `/doctors` placeholder: real search + specialization filter + sort
+- `frontend/src/pages/public/DoctorDetail.tsx` — new `/doctors/:id` route: profile, 14-day date picker, live slot grid, booking form
+- `frontend/src/pages/public/Search.tsx` — replaces the `/search` placeholder: disease picker → scored, reasoned doctor recommendations
+- `frontend/src/pages/public/BookingConfirmation.tsx` — new `/appointments/:id/confirmation` route
 
-**Modified backend files:**
-- `backend/src/routes/index.ts` — registers the new `/doctor` router
-- `backend/prisma/seed/index.ts` — adds weekly availability (Mon–Fri, 9–5) for the first two demo doctors, plus one pending appointment request, so the dashboard has real content on first login
+### Modified frontend files
 
-**New frontend files** (10 pages matching every dashboard card from the spec — Today's Appointments, Upcoming Patients, Appointment Requests, Patient History, Messages, Wallet, Revenue Analytics, Profile, Availability Schedule, Prescription Management):
-- `frontend/src/types/doctorDashboard.types.ts`
-- `frontend/src/services/doctorDashboard.service.ts`
-- `frontend/src/layouts/DoctorDashboardLayout.tsx`
-- `frontend/src/pages/doctor/*.tsx` (12 files: Dashboard, Appointments, Patients, PatientHistory, Messages, Prescriptions, Availability, Revenue, Wallet, Notifications, Profile, Settings)
-
-**Modified frontend file:**
-- `frontend/src/App.tsx` — replaces the old doctor-dashboard placeholder route with the real nested route tree
+- `frontend/src/types/doctor.types.ts` — added `DoctorDetail`/`DoctorAward`/`DoctorCertificate`/`DoctorAvailabilitySlot` types (the doctor detail endpoint returns more fields than the card-list endpoint)
+- `frontend/src/services/doctor.service.ts` — `getDoctorById` now typed against `DoctorDetail`
+- `frontend/src/App.tsx` — wires in the new routes, replacing the `/doctors` and `/search` placeholders
 
 ## After copying the files
 
 ```bash
 cd ~/Github/medconnect-phase1-to-4/backend
+npm run prisma:seed     # re-seeds availability for all 6 doctors, not just 2
+npm run dev
 
-# Re-seed to get the new availability slots + pending appointment request
-npm run prisma:seed
-
-npm run dev     # restart if it was already running
-```
-
-```bash
 cd ~/Github/medconnect-phase1-to-4/frontend
-npm run dev     # restart to pick up the new routes/pages
+npm run dev
 ```
 
-## Testing it
+## Testing the booking flow end to end
 
-1. Log in as a **doctor** demo account — any of these work:
-   `anjali.shrestha@medconnect.demo`, `rajesh.koirala@medconnect.demo`,
-   `sunita.rai@medconnect.demo`, `bikash.thapa@medconnect.demo`,
-   `priya.maharjan@medconnect.demo`, `dipesh.gurung@medconnect.demo`
-   — password `DemoPass123` for all of them.
-2. You should land on `/doctor/dashboard` with real stat cards, not a
-   placeholder.
-3. `anjali.shrestha@medconnect.demo` specifically has a pending
-   appointment request waiting — check the **Appointments → Requests**
-   tab to approve/decline it.
-4. Check the new login page design at `/login` — the icon-accented
-   inputs and animated brand panel should be immediately visible.
+1. Go to `/search`, type "Heart Disease" (or click it from the grid) — you should see ranked Cardiologists with match scores and reason badges like "Highly rated."
+2. Click a doctor → lands on `/doctors/:id` with their full profile and a date strip + slot grid below it.
+3. Pick a date, pick a time slot, optionally add a reason for visit, hit **Confirm booking**.
+   - If you're not logged in, it redirects to `/login` and brings you back here after.
+   - Log in as a patient (`sabina.adhikari@medconnect.demo` / `DemoPass123`) and try again.
+4. You land on `/appointments/:id/confirmation` showing status `PENDING`.
+5. Log in as that doctor in another browser/incognito window and check **Appointments → Requests** — your new booking should be sitting there, approvable/rejectable (Phase 5 functionality, now actually fed by real bookings instead of only seed data).
 
-## Heads-up on the lucide-react version
+## What's deliberately out of scope here
 
-Your project uses `lucide-react@^1.24.0` (newer than what I originally
-scaffolded). Phase 5 imports several new icons (`LayoutDashboard`,
-`CalendarClock`, `ClipboardList`, `LineChart`, `CalendarRange`, `Pill`,
-`TrendingUp`, `Percent`, etc.). I can't verify these against the npm
-registry from this environment. If `npm run dev` errors with something
-like `"X" is not exported by lucide-react`, it's the same class of issue
-you already hit and fixed once with `Venus` — check
-[lucide.dev/icons](https://lucide.dev/icons) for the current name and
-swap it in that one file.
+- **Race-condition hardening**: the slot-availability check is application-level (query, then check, then insert), not a database unique constraint on `(doctorId, date, startTime)`. Two truly simultaneous booking requests for the same slot could theoretically both slip through. Worth adding that constraint before any real traffic, but out of scope for this phase.
+- **Distance-based ranking**: `Doctor.location` is free text, not coordinates, so real "nearest doctor" sorting needs a geocoding step first. The recommendation scoring function is structured so adding a distance term later is additive.
+- **Doctor-side reschedule UI**: the backend already supports rescheduling (`PATCH /doctor/me/appointments/:id/status` with a new date/time), but the Phase 5 Appointments page still only has approve/reject/complete buttons, no date/time picker for reschedule. It can now reuse the slot-picker built in this phase instead of being built from scratch.
+
+## Heads-up on `lucide-react`
+
+Same note as every phase so far — this phase adds `CalendarDays`, `Languages`, `Award`, `Sparkles`, `Clock3`, `Building2`, and a few others. If any error on `npm run dev`, check [lucide.dev/icons](https://lucide.dev/icons) for the current name.
