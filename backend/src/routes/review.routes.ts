@@ -6,3 +6,4 @@ const router = Router();
 router.get('/featured', reviewController.listFeaturedReviews);
 
 export default router;
+ 
