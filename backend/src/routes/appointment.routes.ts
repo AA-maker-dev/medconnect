@@ -7,7 +7,7 @@ import {
   recommendedDoctorsQuerySchema,
   availableSlotsQuerySchema,
   createAppointmentSchema,
-} from 'validators/appointment.validator';
+} from '../validators/appointment.validator';
 
 const router = Router();
 
