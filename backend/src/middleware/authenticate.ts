@@ -70,3 +70,34 @@ export function authorize(...allowedRoles: Role[]) {
     next();
   };
 }
+
+/**
+ * Populates req.user if a valid access token is present, but never blocks
+ * the request otherwise — used for endpoints that are browsable by
+ * anyone (e.g. doctor recommendations) but personalize their response
+ * when the requester happens to be logged in.
+ */
+export async function optionalAuthenticate(
+  req: Request,
+  _res: Response,
+  next: NextFunction
+) {
+  try {
+    const token = extractToken(req);
+    if (!token) return next();
+
+    const payload = verifyAccessToken(token);
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId },
+      select: { id: true, role: true, isActive: true },
+    });
+
+    if (user?.isActive) {
+      req.user = { id: user.id, role: user.role };
+    }
+  } catch {
+    // Invalid/expired token on an optional-auth route just means "treat
+    // as anonymous" — never surface an error here.
+  }
+  next();
+}
