@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, type MotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { HeartPulse } from 'lucide-react';
 
 interface AuthLayoutProps {
