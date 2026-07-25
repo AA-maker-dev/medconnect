@@ -4,7 +4,7 @@ import { validate } from '../middleware/validate';
 import { authenticate } from '../middleware/authenticate';
 import { authLimiter, otpResendLimiter } from '../middleware/rateLimiter';
 import {
-  registerPatientSchema,
+  registerPatientSchema, 
   registerDoctorSchema,
   loginSchema,
   adminLoginSchema,
