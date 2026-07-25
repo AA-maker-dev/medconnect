@@ -4,7 +4,7 @@ export const recommendedDoctorsQuerySchema = z.object({
   query: z.object({
     diseaseId: z.string().uuid('Select a valid disease'),
     limit: z.coerce.number().int().min(1).max(50).optional().default(10),
-  }),
+  }), 
 });
 
 export const availableSlotsQuerySchema = z.object({
