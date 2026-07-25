@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { HeartPulse } from 'lucide-react';
+import { InteractiveBackground } from '@/components/InteractiveBackground';
 
 interface AuthLayoutProps {
   title: string;
@@ -22,19 +23,12 @@ const fadeUp = {
 export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProps) {
   return (
     <div className="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-ivory-50">
-      {/* Subtle background pattern */}
-      <div
-        aria-hidden
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23146B63' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}
-      />
+      <InteractiveBackground />
 
       {/* Soft gradient orbs */}
       <div aria-hidden className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
-          className="absolute -top-32 -right-32 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-teal-500/12 to-transparent blur-3xl"
+          className="absolute -top-32 -right-32 h-[500px] w-[500px] rounded-full bg-gradient-to-br from-teal-500/10 to-transparent blur-3xl"
           animate={{
             x: [0, 30, 0],
             y: [0, 40, 0],
@@ -42,7 +36,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute -bottom-32 -left-32 h-[400px] w-[400px] rounded-full bg-gradient-to-tr from-coral-500/10 to-transparent blur-3xl"
+          className="absolute -bottom-32 -left-32 h-[400px] w-[400px] rounded-full bg-gradient-to-tr from-coral-500/8 to-transparent blur-3xl"
           animate={{
             x: [0, -25, 0],
             y: [0, -35, 0],
@@ -56,6 +50,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="w-full max-w-[420px] mx-auto px-6 relative"
+        style={{ zIndex: 1 }}
       >
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 mb-10 justify-center lg:justify-start">
@@ -78,7 +73,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
           variants={fadeUp}
           initial="hidden"
           animate="visible"
-          className="bg-paper-0 rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] p-7 sm:p-8"
+          className="bg-paper-0/80 backdrop-blur-sm rounded-2xl border border-slate-200/80 shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_rgba(0,0,0,0.06)] p-7 sm:p-8"
         >
           {children}
         </motion.div>
@@ -102,6 +97,7 @@ export function AuthLayout({ title, subtitle, children, footer }: AuthLayoutProp
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8, duration: 0.6 }}
         className="absolute bottom-6 text-xs text-slate-400"
+        style={{ zIndex: 1 }}
       >
         © {new Date().getFullYear()} MedConnect. All rights reserved.
       </motion.p>
