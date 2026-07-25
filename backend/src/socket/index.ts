@@ -4,7 +4,7 @@ import { env } from '../config/env';
 import { verifyAccessToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
 
-/**
+/** 
  * Phase 2 scope: attach Socket.io to the HTTP server and authenticate
  * connecting sockets using the same JWT access token used for REST calls,
  * so Phase 8 can build dedicated appointment chat rooms on top of a
