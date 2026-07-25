@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
           {...register('confirmPassword')}
         />
 
-        <Button type="submit" isLoading={isSubmitting} className="mt-2">
+        <Button type="submit" isLoading={isSubmitting}>
           Reset password
         </Button>
       </form>

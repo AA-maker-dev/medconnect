@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
             {...register('email')}
           />
 
-          <Button type="submit" isLoading={isSubmitting} className="mt-2">
+          <Button type="submit" isLoading={isSubmitting}>
             Send reset link
           </Button>
         </form>

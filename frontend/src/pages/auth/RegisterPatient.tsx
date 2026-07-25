@@ -43,7 +43,7 @@ export default function RegisterPatientPage() {
       title="Create your patient account"
       subtitle="Takes about a minute. You'll verify your email next."
       footer={
-        <span className="text-slate-500">
+        <span>
           Already have an account?{' '}
           <Link to="/login" className="text-teal-700 font-semibold hover:underline">
             Log in
@@ -110,10 +110,10 @@ export default function RegisterPatientPage() {
           {...register('agreeToTerms')}
         />
         {errors.agreeToTerms && (
-          <p className="text-sm text-danger-600 -mt-2">{errors.agreeToTerms.message}</p>
+          <p className="text-sm text-danger-600 -mt-1">{errors.agreeToTerms.message}</p>
         )}
 
-        <Button type="submit" isLoading={isSubmitting} className="mt-2">
+        <Button type="submit" isLoading={isSubmitting}>
           Create account
         </Button>
       </form>

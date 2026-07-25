@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { motion } from 'framer-motion';
 import { Mail } from 'lucide-react';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { Input } from '@/components/ui/Input';
@@ -48,7 +49,7 @@ export default function LoginPage() {
       title="Welcome back"
       subtitle="Log in to manage your appointments and messages."
       footer={
-        <span className="text-slate-500">
+        <span>
           Don't have an account?{' '}
           <Link to="/register" className="text-teal-700 font-semibold hover:underline">
             Create one
@@ -88,11 +89,11 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        <Button type="submit" isLoading={isSubmitting} className="mt-2">
+        <Button type="submit" isLoading={isSubmitting}>
           Log in
         </Button>
 
-        <p className="text-center text-xs text-slate-500 mt-2">
+        <p className="text-center text-xs text-slate-500">
           Are you an administrator?{' '}
           <Link to="/admin/login" className="text-teal-700 hover:underline">
             Admin login

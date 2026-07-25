@@ -21,7 +21,9 @@ cp -r docs/. ~/Github/medconnect-phase1-to-4/docs/
 - `backend/src/controllers/appointment.controller.ts`
 - `backend/src/routes/appointment.routes.ts` — mounted at `/api/appointments`
 
-### Modified backend files
+### Modified backend filesDr. Sunita Rai
+
+
 
 - `backend/src/controllers/public.controller.ts` — added `GET /api/diseases`
 - `backend/src/routes/public.routes.ts` — registers the diseases route

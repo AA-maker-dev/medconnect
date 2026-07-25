@@ -86,7 +86,7 @@ export default function VerifyOtpPage() {
       title="Verify your email"
       subtitle={`Enter the 6-digit code we sent to ${email}.`}
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5" noValidate>
         <div className="flex items-center gap-2 text-teal-700 mb-1">
           <MailCheck className="h-5 w-5" />
           <span className="text-sm font-semibold">Check your inbox (and spam folder)</span>
@@ -100,12 +100,12 @@ export default function VerifyOtpPage() {
           inputMode="numeric"
           placeholder="000000"
           autoFocus
-          className="h-14 w-full rounded-md border border-slate-300 bg-paper-0 text-center text-2xl tracking-[0.5em] font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          className="h-14 w-full rounded-lg border border-slate-300 bg-paper-0 text-center text-2xl tracking-[0.5em] font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-fast"
           {...register('otp')}
         />
-        {errors.otp && <p className="text-sm text-danger-600 -mt-2">{errors.otp.message}</p>}
+        {errors.otp && <p className="text-sm text-danger-600 -mt-1">{errors.otp.message}</p>}
 
-        <Button type="submit" isLoading={isSubmitting} className="mt-2">
+        <Button type="submit" isLoading={isSubmitting}>
           Verify email
         </Button>
 
@@ -113,7 +113,7 @@ export default function VerifyOtpPage() {
           type="button"
           onClick={handleResend}
           disabled={cooldown > 0}
-          className="text-sm text-teal-700 font-semibold hover:underline disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed"
+          className="text-sm text-teal-700 font-semibold hover:underline disabled:text-slate-400 disabled:no-underline disabled:cursor-not-allowed transition-colors duration-fast"
         >
           {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend code'}
         </button>

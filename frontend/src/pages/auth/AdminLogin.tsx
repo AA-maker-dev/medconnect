@@ -41,7 +41,7 @@ export default function AdminLoginPage() {
       subtitle="Restricted access — MedConnect staff only."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
-        <div className="flex items-center gap-2 text-teal-700 mb-1 bg-teal-100 rounded-lg px-3 py-2 w-fit">
+        <div className="flex items-center gap-2 text-teal-700 mb-1 bg-teal-50 border border-teal-100 rounded-lg px-3 py-2.5">
           <ShieldCheck className="h-4 w-4" />
           <span className="text-xs font-semibold uppercase tracking-wide">
             Administrator access
@@ -65,7 +65,7 @@ export default function AdminLoginPage() {
           {...register('password')}
         />
 
-        <Button type="submit" isLoading={isSubmitting} variant="secondary" className="mt-2">
+        <Button type="submit" isLoading={isSubmitting} variant="secondary">
           Sign in as admin
         </Button>
       </form>

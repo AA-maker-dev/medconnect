@@ -57,7 +57,7 @@ export default function RegisterDoctorPage() {
       title="Join as a doctor"
       subtitle="Your profile goes live after admin verifies your license."
       footer={
-        <span className="text-slate-500">
+        <span>
           Already have an account?{' '}
           <Link to="/login" className="text-teal-700 font-semibold hover:underline">
             Log in
@@ -163,10 +163,10 @@ export default function RegisterDoctorPage() {
           {...register('agreeToTerms')}
         />
         {errors.agreeToTerms && (
-          <p className="text-sm text-danger-600 -mt-2">{errors.agreeToTerms.message}</p>
+          <p className="text-sm text-danger-600 -mt-1">{errors.agreeToTerms.message}</p>
         )}
 
-        <Button type="submit" isLoading={isSubmitting} className="mt-2">
+        <Button type="submit" isLoading={isSubmitting}>
           Submit application
         </Button>
       </form>
