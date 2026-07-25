@@ -3,7 +3,7 @@ import { authenticate, authorize } from '../middleware/authenticate';
 import { attachAdminProfile } from '../middleware/attachAdminProfile';
 import { validate } from '../middleware/validate';
 import * as adminController from '../controllers/admin.controller';
-import {
+import { 
   paginationQuerySchema,
   listPatientsQuerySchema,
   listDoctorsQuerySchema,
