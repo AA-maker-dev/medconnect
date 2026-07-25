@@ -7,7 +7,7 @@ import { prisma } from './config/prisma';
 
 async function main() {
   const app = createApp();
-  const httpServer = http.createServer(app);
+  const httpServer = http.createServer(app); 
 
   initSocket(httpServer);
 
