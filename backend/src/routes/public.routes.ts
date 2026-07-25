@@ -8,4 +8,4 @@ router.get('/hospitals', publicController.listHospitals);
 router.get('/stats', publicController.getPlatformStats);
 router.get('/diseases', publicController.listDiseases);
 
-export default router;
+export default router; 
