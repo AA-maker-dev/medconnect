@@ -4,7 +4,7 @@ import { ApiError } from '../utils/ApiError';
 
 const PATIENT_SUMMARY_SELECT = {
   id: true,
-  firstName: true,
+  firstName: true, 
   lastName: true,
   avatarUrl: true,
   gender: true,
