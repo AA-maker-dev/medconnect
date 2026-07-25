@@ -26,6 +26,34 @@ export interface DoctorCard {
   hospital: DoctorHospital | null;
 }
 
+export interface DoctorAward {
+  id: string;
+  title: string;
+  year: number | null;
+  issuer: string | null;
+}
+
+export interface DoctorCertificate {
+  id: string;
+  title: string;
+  fileUrl: string;
+  issuedBy: string | null;
+}
+
+export interface DoctorAvailabilitySlot {
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+}
+
+export interface DoctorDetail extends DoctorCard {
+  bio: string | null;
+  certificates: DoctorCertificate[];
+  awards: DoctorAward[];
+  availability: DoctorAvailabilitySlot[];
+}
+
 export interface FeaturedReview {
   id: string;
   rating: number;
