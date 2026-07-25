@@ -691,5 +691,31 @@ async function seedDemoAdmin() {
 
   console.log('  ✓ Demo admin created');
 }
+async function main() {
+  await seedSpecializationsAndDiseases();
+  const hospitalMap = await seedHospitals();
+  const doctorIds = await seedDemoDoctors(hospitalMap);
+  const patientIds = await seedDemoPatients();
+  await seedDemoReviews(doctorIds, patientIds);
+  await seedPatientDashboardContent(doctorIds, patientIds);
+  await seedDoctorDashboardContent(doctorIds, patientIds);
+  await seedPendingDoctor();
+  await seedModerationReview(doctorIds, patientIds);
+  await seedDemoAdmin();
 
+  console.log('Seed complete.');
+  console.log(`Demo account password for all seeded users: ${DEMO_PASSWORD}`);
+}
+
+main()
+  .catch((err) => {
+    console.error('Seed failed:', err);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+..........
+.......................................
+..................
 
