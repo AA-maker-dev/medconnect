@@ -7,7 +7,7 @@ import type {
   BookedAppointment,
   Disease,
   RecommendedDoctorsResult,
-} from '@/types/appointment.types';
+} from '@/types/appointment.types.ts';
 
 export async function fetchDiseases() {
   const { data } = await api.get<ApiResponse<Disease[]>>('/diseases');
