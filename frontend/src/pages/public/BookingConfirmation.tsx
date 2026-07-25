@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CheckCircle2, CalendarClock, MapPin, Video, Clock3 } from 'lucide-react';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { Button } from '@/components/ui/Button';
-import * as appointmentService from '@/services/appointment.service';
+import * as appointmentService from '../../services/appointment.service';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
