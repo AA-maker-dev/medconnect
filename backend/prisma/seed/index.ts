@@ -7,7 +7,7 @@
  * partners, testimonials) has real data to render in development — none
  * of this is required in production, where real signups populate it.
  *
- * Run with: npm run prisma:seed 
+ * Run with: npm run prisma:seed
  */
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
@@ -19,57 +19,57 @@ const SPECIALIZATIONS: Array<{
   description: string;
   diseases: string[];
 }> = [
-  {
-    name: 'Cardiologist',
-    description: 'Heart and cardiovascular system specialist.',
-    diseases: ['Heart Disease', 'Hypertension', 'Arrhythmia', 'Chest Pain'],
-  },
-  {
-    name: 'Dermatologist',
-    description: 'Skin, hair, and nail specialist.',
-    diseases: ['Skin Disease', 'Acne', 'Eczema', 'Psoriasis', 'Hair Loss'],
-  },
-  {
-    name: 'Dentist',
-    description: 'Oral and dental health specialist.',
-    diseases: ['Dental Problem', 'Tooth Decay', 'Gum Disease'],
-  },
-  {
-    name: 'Neurologist',
-    description: 'Brain and nervous system specialist.',
-    diseases: ['Migraine', 'Epilepsy', 'Stroke', 'Nerve Pain'],
-  },
-  {
-    name: 'Orthopedic Surgeon',
-    description: 'Bones, joints, and musculoskeletal specialist.',
-    diseases: ['Fracture', 'Arthritis', 'Back Pain', 'Sports Injury'],
-  },
-  {
-    name: 'Pediatrician',
-    description: 'Child health specialist.',
-    diseases: ['Childhood Fever', 'Growth Concerns', 'Vaccination'],
-  },
-  {
-    name: 'Gynecologist',
-    description: "Women's reproductive health specialist.",
-    diseases: ['Pregnancy Care', 'Menstrual Disorder', 'PCOS'],
-  },
-  {
-    name: 'Psychiatrist',
-    description: 'Mental health specialist.',
-    diseases: ['Anxiety', 'Depression', 'Insomnia'],
-  },
-  {
-    name: 'General Physician',
-    description: 'Primary care and general health.',
-    diseases: ['Common Cold', 'Fever', 'Diabetes', 'General Checkup'],
-  },
-  {
-    name: 'ENT Specialist',
-    description: 'Ear, nose, and throat specialist.',
-    diseases: ['Sinusitis', 'Ear Infection', 'Throat Infection'],
-  },
-];
+    {
+      name: 'Cardiologist',
+      description: 'Heart and cardiovascular system specialist.',
+      diseases: ['Heart Disease', 'Hypertension', 'Arrhythmia', 'Chest Pain'],
+    },
+    {
+      name: 'Dermatologist',
+      description: 'Skin, hair, and nail specialist.',
+      diseases: ['Skin Disease', 'Acne', 'Eczema', 'Psoriasis', 'Hair Loss'],
+    },
+    {
+      name: 'Dentist',
+      description: 'Oral and dental health specialist.',
+      diseases: ['Dental Problem', 'Tooth Decay', 'Gum Disease'],
+    },
+    {
+      name: 'Neurologist',
+      description: 'Brain and nervous system specialist.',
+      diseases: ['Migraine', 'Epilepsy', 'Stroke', 'Nerve Pain'],
+    },
+    {
+      name: 'Orthopedic Surgeon',
+      description: 'Bones, joints, and musculoskeletal specialist.',
+      diseases: ['Fracture', 'Arthritis', 'Back Pain', 'Sports Injury'],
+    },
+    {
+      name: 'Pediatrician',
+      description: 'Child health specialist.',
+      diseases: ['Childhood Fever', 'Growth Concerns', 'Vaccination'],
+    },
+    {
+      name: 'Gynecologist',
+      description: "Women's reproductive health specialist.",
+      diseases: ['Pregnancy Care', 'Menstrual Disorder', 'PCOS'],
+    },
+    {
+      name: 'Psychiatrist',
+      description: 'Mental health specialist.',
+      diseases: ['Anxiety', 'Depression', 'Insomnia'],
+    },
+    {
+      name: 'General Physician',
+      description: 'Primary care and general health.',
+      diseases: ['Common Cold', 'Fever', 'Diabetes', 'General Checkup'],
+    },
+    {
+      name: 'ENT Specialist',
+      description: 'Ear, nose, and throat specialist.',
+      diseases: ['Sinusitis', 'Ear Infection', 'Throat Infection'],
+    },
+  ];
 
 const HOSPITALS = [
   { name: 'Norvic International Hospital', city: 'Kathmandu' },
@@ -526,10 +526,10 @@ async function seedDoctorDashboardContent(doctorIds: string[], patientIds: strin
   if (doctorIds.length < 2 || patientIds.length === 0) return;
   console.log('Seeding doctor dashboard content (availability, appointment requests)...');
 
-  const [doctorA, doctorB] = doctorIds;
+  const [doctorA] = doctorIds;
 
-  // Weekly availability, Mon–Fri 9am–5pm, for the first two demo doctors
-  for (const doctorId of [doctorA, doctorB]) {
+  // Weekly availability, Mon–Fri 9am–5pm, for every demo doctor
+  for (const doctorId of doctorIds) {
     const existing = await prisma.doctorAvailability.findFirst({ where: { doctorId } });
     if (existing) continue;
 
