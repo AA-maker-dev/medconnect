@@ -7,8 +7,8 @@
 | 3 | Landing page & responsive UI | ✅ Done |
 | 4 | Patient dashboard | ✅ Done |
 | 5 | Doctor dashboard | ✅ Done |
-| 6 | Admin dashboard | ⏳ Next |
-| 7 | Appointment booking + disease-based recommendation | Planned |
+| 6 | Admin dashboard | ✅ Done |
+| 7 | Appointment booking + disease-based recommendation | ⏳ Next |
 | 8 | Real-time Socket.io messaging | Planned |
 | 9 | Payments (eSewa, FonePay) | Planned |
 | 10 | Prescriptions, reviews, notifications, analytics | Planned |
@@ -87,7 +87,20 @@
 - [x] Messages page is an honest placeholder explaining Phase 8 scope rather than a dead link or fake UI
 - [x] Seed script extended: weekly availability (Mon–Fri, 9–5) for the first two demo doctors, plus one pending appointment request so "Appointment Requests" has something to act on immediately
 
+## Phase 6 deliverables checklist
+
+- [x] `attachAdminProfile` middleware, mirroring the Patient/Doctor pattern
+- [x] Full admin API mounted at `/api/admin`: dashboard summary, patients (list/search/detail/activate-deactivate), doctors (list/search/filter by status/detail/activate-deactivate), doctor verification (approve/reject with a reason that's sent to the doctor as a notification), appointments oversight (filterable by status/date range), payments oversight (filterable, with refund), platform-wide revenue analytics (monthly + by-gateway breakdown), system analytics (patient/doctor growth, appointment volume, specialization distribution), appointment reports (date-range status + revenue breakdown), review moderation (hide/show/delete), notification broadcast (to all/patients/doctors) plus a personal admin inbox
+- [x] All 10 spec'd admin dashboard sections: Manage Patients, Manage Doctors, Verify Doctors, Appointments, Reports, Payments, Revenue, System Analytics, Manage Reviews, Manage Notifications
+- [x] Revenue page has a real bar chart (monthly trend) and pie chart (gateway breakdown); System Analytics has a dual-line growth chart, a bar chart for appointment volume, and a horizontal-bar specialization distribution
+- [x] New shared UI: `Dialog` (used for the reject-doctor reason prompt) and `Pagination` (used across every admin list page)
+- [x] Seed script extended: one `PENDING`-verification doctor (`sushil.pending@medconnect.demo`) so Verify Doctors has something to act on, one low-rated review so Manage Reviews has something to moderate, and a demo admin account (`admin@medconnect.demo`)
+
 ## Notes for future phases
+
+- Reports currently covers appointment status + revenue breakdown for a date range via `GET /api/admin/reports/appointments`; CSV/PDF export isn't wired yet — the data is there, just needs a download button and a server-side CSV writer (straightforward addition, deliberately deferred to avoid scope creep here).
+- Payment refunds update the `Payment` row (`status: REFUNDED`, `refundedAmount`, `refundedAt`) but don't yet call out to eSewa/FonePay's actual refund API — that's real Phase 9 (Payments integration) territory; today's refund is an internal record-keeping action.
+- Doctor deactivation (`setDoctorActive`) flips `User.isActive`, which `login` already checks — a deactivated doctor is immediately locked out. The public `/api/doctors` directory now also filters on `user.isActive`, not just `verificationStatus`, so a deactivated doctor's profile disappears from public listings immediately too (fixed during this phase's review, not deferred).
 
 - Doctor "Add prescription" from the Appointments/history tab currently just shows a button — full inline creation from that context (vs. the dedicated Prescriptions page) can be wired later; the dedicated page's create flow is fully functional today.
 - Reschedule is implemented in the backend (`updateAppointmentStatus` accepts `date`/`startTime`/`endTime` when status is `RESCHEDULED`) but the frontend Appointments page doesn't yet have a reschedule UI (date/time picker) — only approve/reject/complete buttons. Worth adding alongside Phase 7's slot-picking UI, since they'll share a component.

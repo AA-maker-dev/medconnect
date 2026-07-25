@@ -43,6 +43,20 @@ import DoctorNotificationsPage from '@/pages/doctor/Notifications';
 import DoctorProfilePage from '@/pages/doctor/Profile';
 import DoctorSettingsPage from '@/pages/doctor/Settings';
 
+import { AdminDashboardLayout } from '@/layouts/AdminDashboardLayout';
+import AdminDashboardPage from '@/pages/admin/Dashboard';
+import AdminPatientsPage from '@/pages/admin/Patients';
+import AdminDoctorsPage from '@/pages/admin/Doctors';
+import AdminVerifyDoctorsPage from '@/pages/admin/VerifyDoctors';
+import AdminAppointmentsPage from '@/pages/admin/Appointments';
+import AdminPaymentsPage from '@/pages/admin/Payments';
+import AdminRevenuePage from '@/pages/admin/Revenue';
+import AdminAnalyticsPage from '@/pages/admin/Analytics';
+import AdminReviewsPage from '@/pages/admin/Reviews';
+import AdminNotificationsPage from '@/pages/admin/Notifications';
+import AdminProfilePage from '@/pages/admin/Profile';
+import AdminSettingsPage from '@/pages/admin/Settings';
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, refetchOnWindowFocus: false, staleTime: 30_000 },
@@ -60,15 +74,6 @@ function PublicPagePlaceholder({ label }: { label: string }) {
   );
 }
 
-// Placeholders so ProtectedRoute has somewhere real to send each role
-// until Phases 4–6 build the actual dashboards.
-function DashboardPlaceholder({ label }: { label: string }) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-ivory-50 font-body text-slate-700">
-      {label} dashboard arrives in a later phase.
-    </div>
-  );
-}
 
 export default function App() {
   return (
@@ -134,10 +139,20 @@ export default function App() {
                   </Route>
                 </Route>
                 <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                  <Route
-                    path="/admin/dashboard"
-                    element={<DashboardPlaceholder label="Admin" />}
-                  />
+                  <Route path="/admin" element={<AdminDashboardLayout />}>
+                    <Route path="dashboard" element={<AdminDashboardPage />} />
+                    <Route path="patients" element={<AdminPatientsPage />} />
+                    <Route path="doctors" element={<AdminDoctorsPage />} />
+                    <Route path="verify-doctors" element={<AdminVerifyDoctorsPage />} />
+                    <Route path="appointments" element={<AdminAppointmentsPage />} />
+                    <Route path="payments" element={<AdminPaymentsPage />} />
+                    <Route path="revenue" element={<AdminRevenuePage />} />
+                    <Route path="analytics" element={<AdminAnalyticsPage />} />
+                    <Route path="reviews" element={<AdminReviewsPage />} />
+                    <Route path="notifications" element={<AdminNotificationsPage />} />
+                    <Route path="profile" element={<AdminProfilePage />} />
+                    <Route path="settings" element={<AdminSettingsPage />} />
+                  </Route>
                 </Route>
 
                 <Route path="*" element={<Navigate to="/" replace />} />

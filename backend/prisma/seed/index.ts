@@ -571,6 +571,127 @@ async function seedDoctorDashboardContent(doctorIds: string[], patientIds: strin
   console.log('  ✓ Availability and appointment requests seeded');
 }
 
+async function seedPendingDoctor() {
+  console.log('Seeding one PENDING-verification doctor for admin review...');
+  const email = 'sushil.pending@medconnect.demo';
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    console.log('  · Pending doctor already exists, skipping');
+    return;
+  }
+
+  const generalPhysician = await prisma.specialization.findUnique({
+    where: { name: 'General Physician' },
+  });
+  if (!generalPhysician) return;
+
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
+  await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      role: 'DOCTOR',
+      isEmailVerified: true,
+      wallet: { create: { balance: 0 } },
+      doctor: {
+        create: {
+          firstName: 'Sushil',
+          lastName: 'Pandey',
+          qualification: 'MBBS',
+          experienceYears: 3,
+          consultationFee: 600,
+          licenseNumber: 'NMC-11890',
+          specializationId: generalPhysician.id,
+          bio: 'Recently registered, awaiting admin verification.',
+          verificationStatus: 'PENDING',
+        },
+      },
+    },
+  });
+
+  console.log('  ✓ Pending doctor created (sushil.pending@medconnect.demo)');
+}
+
+async function seedModerationReview(doctorIds: string[], patientIds: string[]) {
+  if (doctorIds.length === 0 || patientIds.length < 2) return;
+  console.log('Seeding one low-rated review for admin moderation demo...');
+
+  const doctorId = doctorIds[0];
+  const patientId = patientIds[1 % patientIds.length];
+
+  const existingReview = await prisma.review.findFirst({
+    where: { doctorId, patientId, rating: 2 },
+  });
+  if (existingReview) {
+    console.log('  · Moderation-demo review already exists, skipping');
+    return;
+  }
+
+  let appointment = await prisma.appointment.findFirst({
+    where: { doctorId, patientId, status: 'COMPLETED' },
+  });
+
+  if (!appointment) {
+    appointment = await prisma.appointment.create({
+      data: {
+        patientId,
+        doctorId,
+        date: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        startTime: '15:00',
+        endTime: '15:30',
+        status: 'COMPLETED',
+        consultationType: 'IN_PERSON',
+      },
+    });
+  }
+
+  const reviewOnThisAppointment = await prisma.review.findUnique({
+    where: { appointmentId: appointment.id },
+  });
+  if (reviewOnThisAppointment) {
+    console.log('  · Appointment already has a review, skipping');
+    return;
+  }
+
+  await prisma.review.create({
+    data: {
+      appointmentId: appointment.id,
+      patientId,
+      doctorId,
+      rating: 2,
+      comment: 'Waited over an hour past my appointment time with no update.',
+    },
+  });
+
+  console.log('  ✓ Moderation-demo review seeded');
+}
+
+async function seedDemoAdmin() {
+  console.log('Seeding demo admin account...');
+  const email = 'admin@medconnect.demo';
+
+  const existing = await prisma.user.findUnique({ where: { email } });
+  if (existing) {
+    console.log('  · Admin already exists, skipping');
+    return;
+  }
+
+  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
+  await prisma.user.create({
+    data: {
+      email,
+      passwordHash,
+      role: 'ADMIN',
+      isEmailVerified: true,
+      wallet: { create: { balance: 0 } },
+      admin: { create: { firstName: 'Platform', lastName: 'Admin' } },
+    },
+  });
+
+  console.log('  ✓ Demo admin created');
+}
+
 async function main() {
   await seedSpecializationsAndDiseases();
   const hospitalMap = await seedHospitals();
@@ -579,6 +700,9 @@ async function main() {
   await seedDemoReviews(doctorIds, patientIds);
   await seedPatientDashboardContent(doctorIds, patientIds);
   await seedDoctorDashboardContent(doctorIds, patientIds);
+  await seedPendingDoctor();
+  await seedModerationReview(doctorIds, patientIds);
+  await seedDemoAdmin();
 
   console.log('Seed complete.');
   console.log(`Demo account password for all seeded users: ${DEMO_PASSWORD}`);

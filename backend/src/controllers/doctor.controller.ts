@@ -23,9 +23,10 @@ const DOCTOR_CARD_SELECT = {
 } satisfies Prisma.DoctorSelect;
 
 /**
- * Public doctor directory. Only ever returns VERIFIED doctors — a doctor
- * pending or rejected admin review should not be discoverable or
- * bookable, regardless of what sort/filter is requested.
+ * Public doctor directory. Only ever returns VERIFIED doctors on an
+ * ACTIVE account — a doctor pending/rejected admin review, or one an
+ * admin has since deactivated, should not be discoverable or bookable,
+ * regardless of what sort/filter is requested.
  *
  * Query params:
  *   sortBy = 'rating' | 'recent' | 'experience'   (default: rating)
@@ -47,6 +48,7 @@ export const listDoctors = asyncHandler(async (req: Request, res: Response) => {
   const doctors = await prisma.doctor.findMany({
     where: {
       verificationStatus: 'VERIFIED',
+      user: { isActive: true },
       ...(specializationId ? { specializationId } : {}),
     },
     orderBy,
@@ -59,7 +61,7 @@ export const listDoctors = asyncHandler(async (req: Request, res: Response) => {
 
 export const getDoctorById = asyncHandler(async (req: Request, res: Response) => {
   const doctor = await prisma.doctor.findFirst({
-    where: { id: req.params.id, verificationStatus: 'VERIFIED' },
+    where: { id: req.params.id, verificationStatus: 'VERIFIED', user: { isActive: true } },
     select: {
       ...DOCTOR_CARD_SELECT,
       bio: true,
