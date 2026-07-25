@@ -8,6 +8,10 @@ import { PublicOnlyRoute } from '@/components/shared/PublicOnlyRoute';
 import { PublicLayout } from '@/layouts/PublicLayout';
 
 import LandingPage from '@/pages/public/Landing';
+import DoctorDirectoryPage from '@/pages/public/DoctorDirectory';
+import DoctorDetailPage from '@/pages/public/DoctorDetail';
+import SearchPage from '@/pages/public/Search';
+import BookingConfirmationPage from '@/pages/public/BookingConfirmation';
 import LoginPage from '@/pages/auth/Login';
 import AdminLoginPage from '@/pages/auth/AdminLogin';
 import RegisterChoicePage from '@/pages/auth/RegisterChoice';
@@ -86,11 +90,20 @@ export default function App() {
                 {/* Public site — navbar + footer + mobile bottom nav */}
                 <Route element={<PublicLayout />}>
                   <Route path="/" element={<LandingPage />} />
-                  <Route path="/doctors" element={<PublicPagePlaceholder label="Doctor directory" />} />
+                  <Route path="/doctors" element={<DoctorDirectoryPage />} />
+                  <Route path="/doctors/:id" element={<DoctorDetailPage />} />
                   <Route path="/specialties" element={<PublicPagePlaceholder label="Specialties" />} />
                   <Route path="/about" element={<PublicPagePlaceholder label="About" />} />
                   <Route path="/contact" element={<PublicPagePlaceholder label="Contact" />} />
-                  <Route path="/search" element={<PublicPagePlaceholder label="Search results" />} />
+                  <Route path="/search" element={<SearchPage />} />
+                </Route>
+
+                {/* Booking confirmation — any authenticated user who owns the appointment */}
+                <Route element={<ProtectedRoute />}>
+                  <Route
+                    path="/appointments/:id/confirmation"
+                    element={<BookingConfirmationPage />}
+                  />
                 </Route>
 
                 {/* Auth pages — redirect away if already logged in */}
