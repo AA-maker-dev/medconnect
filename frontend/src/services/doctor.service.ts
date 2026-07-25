@@ -1,6 +1,6 @@
 import { api } from './api';
 import type { ApiResponse } from '@/types/auth.types';
-import type { DoctorCard } from '@/types/doctor.types';
+import type { DoctorCard, DoctorDetail } from '@/types/doctor.types';
 
 export interface ListDoctorsParams {
   sortBy?: 'rating' | 'recent' | 'experience';
@@ -14,6 +14,6 @@ export async function listDoctors(params: ListDoctorsParams = {}) {
 }
 
 export async function getDoctorById(id: string) {
-  const { data } = await api.get<ApiResponse<DoctorCard>>(`/doctors/${id}`);
+  const { data } = await api.get<ApiResponse<DoctorDetail>>(`/doctors/${id}`);
   return data.data;
 }
