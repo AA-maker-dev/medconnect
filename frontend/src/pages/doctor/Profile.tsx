@@ -52,7 +52,11 @@ export default function DoctorProfilePage() {
   }, [profile, reset]);
 
   const updateMutation = useMutation({
-    mutationFn: (values: ProfileFormValues) => doctorDashboardService.updateProfile(values),
+    mutationFn: (values: ProfileFormValues) =>
+      doctorDashboardService.updateProfile({
+        ...values,
+        consultationFee: String(values.consultationFee),
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['doctor', 'profile'] });
       showToast('Profile updated.', 'success');
