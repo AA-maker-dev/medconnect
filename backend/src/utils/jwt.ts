@@ -5,7 +5,7 @@ import { Role } from '@prisma/client';
 export interface AccessTokenPayload extends JwtPayload {
   userId: string;
   role: Role;
-}
+} 
 
 export interface RefreshTokenPayload extends JwtPayload {
   userId: string;
