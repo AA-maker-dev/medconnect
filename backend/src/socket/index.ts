@@ -3,15 +3,12 @@ import { Server as SocketIOServer } from 'socket.io';
 import { env } from '../config/env';
 import { verifyAccessToken } from '../utils/jwt';
 import { logger } from '../utils/logger';
+import { registerChatHandlers } from './chat.socket';
 
-/** 
- * Phase 2 scope: attach Socket.io to the HTTP server and authenticate
- * connecting sockets using the same JWT access token used for REST calls,
- * so Phase 8 can build dedicated appointment chat rooms on top of a
- * connection that's already known to belong to a real, logged-in user.
- *
- * Event handlers (join room, send message, typing indicator, etc.) are
- * intentionally NOT implemented here — that's Phase 8.
+/**
+ * Attaches Socket.io to the HTTP server, authenticates connecting sockets
+ * using the same JWT access token used for REST calls, and registers the
+ * Phase 8 real-time chat event handlers (see chat.socket.ts).
  */
 export function initSocket(httpServer: HttpServer) {
   const io = new SocketIOServer(httpServer, {
@@ -40,12 +37,10 @@ export function initSocket(httpServer: HttpServer) {
     }
   });
 
+  registerChatHandlers(io);
+
   io.on('connection', (socket) => {
     logger.debug(`Socket connected: user=${socket.data.userId} role=${socket.data.role}`);
-
-    socket.on('disconnect', () => {
-      logger.debug(`Socket disconnected: user=${socket.data.userId}`);
-    });
   });
 
   return io;
