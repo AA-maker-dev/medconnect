@@ -19,57 +19,57 @@ const SPECIALIZATIONS: Array<{
   description: string;
   diseases: string[];
 }> = [
-    {
-      name: 'Cardiologist',
-      description: 'Heart and cardiovascular system specialist.',
-      diseases: ['Heart Disease', 'Hypertension', 'Arrhythmia', 'Chest Pain'],
-    },
-    {
-      name: 'Dermatologist',
-      description: 'Skin, hair, and nail specialist.',
-      diseases: ['Skin Disease', 'Acne', 'Eczema', 'Psoriasis', 'Hair Loss'],
-    },
-    {
-      name: 'Dentist',
-      description: 'Oral and dental health specialist.',
-      diseases: ['Dental Problem', 'Tooth Decay', 'Gum Disease'],
-    },
-    {
-      name: 'Neurologist',
-      description: 'Brain and nervous system specialist.',
-      diseases: ['Migraine', 'Epilepsy', 'Stroke', 'Nerve Pain'],
-    },
-    {
-      name: 'Orthopedic Surgeon',
-      description: 'Bones, joints, and musculoskeletal specialist.',
-      diseases: ['Fracture', 'Arthritis', 'Back Pain', 'Sports Injury'],
-    },
-    {
-      name: 'Pediatrician',
-      description: 'Child health specialist.',
-      diseases: ['Childhood Fever', 'Growth Concerns', 'Vaccination'],
-    },
-    {
-      name: 'Gynecologist',
-      description: "Women's reproductive health specialist.",
-      diseases: ['Pregnancy Care', 'Menstrual Disorder', 'PCOS'],
-    },
-    {
-      name: 'Psychiatrist',
-      description: 'Mental health specialist.',
-      diseases: ['Anxiety', 'Depression', 'Insomnia'],
-    },
-    {
-      name: 'General Physician',
-      description: 'Primary care and general health.',
-      diseases: ['Common Cold', 'Fever', 'Diabetes', 'General Checkup'],
-    },
-    {
-      name: 'ENT Specialist',
-      description: 'Ear, nose, and throat specialist.',
-      diseases: ['Sinusitis', 'Ear Infection', 'Throat Infection'],
-    },
-  ];
+  {
+    name: 'Cardiologist',
+    description: 'Heart and cardiovascular system specialist.',
+    diseases: ['Heart Disease', 'Hypertension', 'Arrhythmia', 'Chest Pain'],
+  },
+  {
+    name: 'Dermatologist',
+    description: 'Skin, hair, and nail specialist.',
+    diseases: ['Skin Disease', 'Acne', 'Eczema', 'Psoriasis', 'Hair Loss'],
+  },
+  {
+    name: 'Dentist',
+    description: 'Oral and dental health specialist.',
+    diseases: ['Dental Problem', 'Tooth Decay', 'Gum Disease'],
+  },
+  {
+    name: 'Neurologist',
+    description: 'Brain and nervous system specialist.',
+    diseases: ['Migraine', 'Epilepsy', 'Stroke', 'Nerve Pain'],
+  },
+  {
+    name: 'Orthopedic Surgeon',
+    description: 'Bones, joints, and musculoskeletal specialist.',
+    diseases: ['Fracture', 'Arthritis', 'Back Pain', 'Sports Injury'],
+  },
+  {
+    name: 'Pediatrician',
+    description: 'Child health specialist.',
+    diseases: ['Childhood Fever', 'Growth Concerns', 'Vaccination'],
+  },
+  {
+    name: 'Gynecologist',
+    description: "Women's reproductive health specialist.",
+    diseases: ['Pregnancy Care', 'Menstrual Disorder', 'PCOS'],
+  },
+  {
+    name: 'Psychiatrist',
+    description: 'Mental health specialist.',
+    diseases: ['Anxiety', 'Depression', 'Insomnia'],
+  },
+  {
+    name: 'General Physician',
+    description: 'Primary care and general health.',
+    diseases: ['Common Cold', 'Fever', 'Diabetes', 'General Checkup'],
+  },
+  {
+    name: 'ENT Specialist',
+    description: 'Ear, nose, and throat specialist.',
+    diseases: ['Sinusitis', 'Ear Infection', 'Throat Infection'],
+  },
+];
 
 const HOSPITALS = [
   { name: 'Norvic International Hospital', city: 'Kathmandu' },
@@ -691,6 +691,114 @@ async function seedDemoAdmin() {
 
   console.log('  ✓ Demo admin created');
 }
+
+async function seedChatMessages(doctorIds: string[], patientIds: string[]) {
+  if (doctorIds.length === 0 || patientIds.length === 0) return;
+  console.log('Seeding chat rooms and demo messages...');
+
+  // Chat rooms are normally created by the app the moment a doctor
+  // approves an appointment (see backend/src/services/doctor.service.ts
+  // updateAppointmentStatus) — appointments inserted directly by this
+  // seed script never went through that code path, so we create the
+  // room explicitly here for any APPROVED/COMPLETED appointment that
+  // doesn't have one yet.
+  const eligibleAppointments = await prisma.appointment.findMany({
+    where: {
+      status: { in: ['APPROVED', 'COMPLETED'] },
+      patientId: { in: patientIds },
+      doctorId: { in: doctorIds },
+    },
+    select: { id: true, patientId: true, doctorId: true, status: true },
+  });
+
+  let roomsCreated = 0;
+  let conversationSeeded = false;
+
+  for (const appointment of eligibleAppointments) {
+    const room = await prisma.chatRoom.upsert({
+      where: { appointmentId: appointment.id },
+      update: {},
+      create: { appointmentId: appointment.id },
+    });
+    roomsCreated++;
+
+    // Seed one realistic back-and-forth conversation on the first
+    // COMPLETED appointment we find — enough to demo the chat UI
+    // (bubbles, reply, delivered/seen ticks) without seeding noise into
+    // every single room.
+    if (!conversationSeeded && appointment.status === 'COMPLETED') {
+      const existingMessages = await prisma.message.count({ where: { chatRoomId: room.id } });
+      if (existingMessages === 0) {
+        const patient = await prisma.patient.findUnique({
+          where: { id: appointment.patientId },
+          select: { userId: true },
+        });
+        const doctor = await prisma.doctor.findUnique({
+          where: { id: appointment.doctorId },
+          select: { userId: true },
+        });
+
+        if (patient && doctor) {
+          const now = Date.now();
+          const conversation: Array<{ senderId: string; content: string; minutesAgo: number }> = [
+            {
+              senderId: patient.userId,
+              content: "Hi doctor, I still have a mild headache after our appointment. Is that normal?",
+              minutesAgo: 180,
+            },
+            {
+              senderId: doctor.userId,
+              content:
+                'That can happen for a day or two while the antihistamine takes full effect. Stay hydrated and let me know if it gets worse.',
+              minutesAgo: 175,
+            },
+            {
+              senderId: patient.userId,
+              content: 'Okay, that is reassuring. Thank you!',
+              minutesAgo: 170,
+            },
+            {
+              senderId: doctor.userId,
+              content: "Of course. Don't hesitate to reach out if anything changes.",
+              minutesAgo: 168,
+            },
+          ];
+
+          let previousMessageId: string | null = null;
+          for (const [index, msg] of conversation.entries()) {
+            const createdAt = new Date(now - msg.minutesAgo * 60 * 1000);
+            const created = await prisma.message.create({
+              data: {
+                chatRoomId: room.id,
+                senderId: msg.senderId,
+                type: 'TEXT',
+                content: msg.content,
+                status: 'SEEN',
+                deliveredAt: createdAt,
+                seenAt: createdAt,
+                createdAt,
+                // Give the third message a reply-to reference to the
+                // first, so the "reply" UI has something real to render.
+                replyToId: index === 2 ? previousMessageId : undefined,
+              },
+            });
+            if (index === 0) previousMessageId = created.id;
+          }
+
+          await prisma.chatRoom.update({
+            where: { id: room.id },
+            data: { lastMessageAt: new Date(now - 168 * 60 * 1000) },
+          });
+
+          conversationSeeded = true;
+        }
+      }
+    }
+  }
+
+  console.log(`  ✓ ${roomsCreated} chat room(s) ready${conversationSeeded ? ', with a demo conversation' : ''}`);
+}
+
 async function main() {
   await seedSpecializationsAndDiseases();
   const hospitalMap = await seedHospitals();
@@ -699,6 +807,7 @@ async function main() {
   await seedDemoReviews(doctorIds, patientIds);
   await seedPatientDashboardContent(doctorIds, patientIds);
   await seedDoctorDashboardContent(doctorIds, patientIds);
+  await seedChatMessages(doctorIds, patientIds);
   await seedPendingDoctor();
   await seedModerationReview(doctorIds, patientIds);
   await seedDemoAdmin();
@@ -715,5 +824,3 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-
