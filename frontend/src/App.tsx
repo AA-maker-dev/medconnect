@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { SocketProvider } from '@/context/SocketContext';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
 import { PublicOnlyRoute } from '@/components/shared/PublicOnlyRoute';
 import { PublicLayout } from '@/layouts/PublicLayout';
@@ -26,6 +27,7 @@ import PatientDashboardPage from '@/pages/patient/Dashboard';
 import PatientAppointmentsPage from '@/pages/patient/Appointments';
 import MedicalHistoryPage from '@/pages/patient/MedicalHistory';
 import FavoriteDoctorsPage from '@/pages/patient/FavoriteDoctors';
+import PatientMessagesPage from '@/pages/patient/Messages';
 import PrescriptionsPage from '@/pages/patient/Prescriptions';
 import InvoicesPage from '@/pages/patient/Invoices';
 import WalletPage from '@/pages/patient/Wallet';
@@ -85,7 +87,8 @@ export default function App() {
       <ThemeProvider>
         <ToastProvider>
           <AuthProvider>
-            <BrowserRouter>
+            <SocketProvider>
+              <BrowserRouter>
               <Routes>
                 {/* Public site — navbar + footer + mobile bottom nav */}
                 <Route element={<PublicLayout />}>
@@ -127,6 +130,7 @@ export default function App() {
                     <Route path="appointments" element={<PatientAppointmentsPage />} />
                     <Route path="medical-history" element={<MedicalHistoryPage />} />
                     <Route path="favorite-doctors" element={<FavoriteDoctorsPage />} />
+                    <Route path="messages" element={<PatientMessagesPage />} />
                     <Route path="prescriptions" element={<PrescriptionsPage />} />
                     <Route path="invoices" element={<InvoicesPage />} />
                     <Route path="wallet" element={<WalletPage />} />
@@ -171,6 +175,7 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </BrowserRouter>
+            </SocketProvider>
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>
