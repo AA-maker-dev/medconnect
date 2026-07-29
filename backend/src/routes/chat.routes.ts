@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '../middleware/authenticate';
 import { validate } from '../middleware/validate';
 import { chatUpload } from '../middleware/chatUpload';
-import * as chatController from '../controllers/chat.controller';
+import * as chatController from '../controllers/chat.controllers';
 import { listMessagesQuerySchema } from '../validators/chat.validator';
 
 const router = Router();
