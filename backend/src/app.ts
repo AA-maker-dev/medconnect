@@ -1,5 +1,6 @@
 import express from 'express';
-import helmet from 'helmet'; 
+import path from 'path';
+import helmet from 'helmet';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env';
@@ -11,8 +12,11 @@ import routes from './routes';
 export function createApp() {
   const app = express();
 
-  // Security headers
-  app.use(helmet());
+  // Security headers. crossOriginResourcePolicy is relaxed to
+  // 'cross-origin' because the frontend runs on a different origin/port
+  // and needs to load chat attachments (images, PDFs) served from
+  // /uploads below — the default 'same-origin' would silently block them.
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
 
   // CORS — must allow credentials for the refresh-token httpOnly cookie
   app.use(
@@ -29,6 +33,12 @@ export function createApp() {
 
   // XSS sanitation on every request body, before it hits validators
   app.use(sanitizeBody);
+
+  // Chat attachments (images, PDFs) — see middleware/chatUpload.ts for
+  // how files land here. Static, unauthenticated by design: the URL
+  // itself is an unguessable UUID, same tradeoff most chat apps make for
+  // attachment CDN links.
+  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
   // General rate limiting (auth routes layer stricter limits on top)
   app.use('/api', apiLimiter);
