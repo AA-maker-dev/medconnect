@@ -777,12 +777,10 @@ async function seedChatMessages(doctorIds: string[], patientIds: string[]) {
                 deliveredAt: createdAt,
                 seenAt: createdAt,
                 createdAt,
-                // Give the third message a reply-to reference to the
-                // first, so the "reply" UI has something real to render.
-                replyToId: index === 2 ? previousMessageId : undefined,
+                replyToId: index > 0 ? previousMessageId : undefined,
               },
             });
-            if (index === 0) previousMessageId = created.id;
+            previousMessageId = created.id;
           }
 
           await prisma.chatRoom.update({
