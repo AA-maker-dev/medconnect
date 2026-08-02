@@ -115,13 +115,18 @@ export function registerChatHandlers(io: SocketIOServer) {
             replyToId: payload.replyToId,
           });
 
-          io.to(chatRoomName(payload.roomId)).emit('message:new', {
+          // Send the saved message only to OTHER users in the room
+          socket.to(chatRoomName(payload.roomId)).emit('message:new', {
             roomId: payload.roomId,
             message,
             tempId: payload.tempId,
           });
 
-          ack?.({ success: true, message });
+          // Return the saved message to the sender
+          ack?.({
+            success: true,
+            message,
+          });
         } catch (err) {
           logger.warn(`message:send failed for user=${userId}: ${err}`);
           ack?.({
