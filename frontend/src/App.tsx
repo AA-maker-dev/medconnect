@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Analytics } from '@vercel/analytics/react';
 import { AuthProvider } from '@/context/AuthContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ToastProvider } from '@/context/ToastContext';
@@ -179,6 +180,7 @@ export default function App() {
           </AuthProvider>
         </ToastProvider>
       </ThemeProvider>
+      <Analytics />
     </QueryClientProvider>
   );
 }
