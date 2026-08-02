@@ -1,0 +1,10 @@
+{
+  "name": "medconnect",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build"
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
+}
