@@ -122,10 +122,3 @@ prescriptions & lab reports, reviews, payments/invoices/wallet, and
 notifications. See `docs/ARCHITECTURE.md §2` for why it's shaped this
 way.
 
-## Next phase
-
-Phase 2 will implement: registration (patient/doctor), login, JWT
-issuance + refresh rotation, email verification, OTP, forgot/reset
-password, and role-based route guards on both frontend and backend —
-built directly on top of the `User`/`Patient`/`Doctor`/`Admin` /
-`RefreshToken` models defined here.

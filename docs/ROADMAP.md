@@ -10,7 +10,7 @@
 | 6 | Admin dashboard | ✅ Done |
 | 7 | Appointment booking + disease-based recommendation | ✅ Done |
 | 8 | Real-time Socket.io messaging | ✅ Done |
-| 9 | Payments (eSewa, FonePay) | ⏳ Next |
+| 9 | Payments (eSewa, FonePay) | ✅ Done |
 | 10 | Prescriptions, reviews, notifications, analytics | Planned |
 | 11 | Testing, optimization, Docker hardening, deployment docs | Planned |
 
