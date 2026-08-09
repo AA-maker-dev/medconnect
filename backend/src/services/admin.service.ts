@@ -316,7 +316,10 @@ export async function listPayments(
 }
 
 export async function refundPayment(paymentId: string, refundAmount?: number) {
-  const payment = await prisma.payment.findUnique({ where: { id: paymentId } });
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    include: { appointment: { include: { patient: true } } },
+  });
   if (!payment) throw ApiError.notFound('Payment not found');
   if (payment.status !== 'SUCCESS') {
     throw ApiError.badRequest('Only successful payments can be refunded');
@@ -327,13 +330,50 @@ export async function refundPayment(paymentId: string, refundAmount?: number) {
     throw ApiError.badRequest('Refund amount cannot exceed the original payment amount');
   }
 
-  return prisma.payment.update({
-    where: { id: paymentId },
-    data: {
-      status: 'REFUNDED',
-      refundedAmount: amount,
-      refundedAt: new Date(),
-    },
+  const patientUserId = payment.appointment.patient.userId;
+
+  return prisma.$transaction(async (tx) => {
+    const updatedPayment = await tx.payment.update({
+      where: { id: paymentId },
+      data: {
+        status: 'REFUNDED',
+        refundedAmount: amount,
+        refundedAt: new Date(),
+      },
+    });
+
+    let wallet = await tx.wallet.findUnique({ where: { userId: patientUserId } });
+    if (!wallet) {
+      wallet = await tx.wallet.create({
+        data: { userId: patientUserId, balance: new Prisma.Decimal(0) },
+      });
+    }
+
+    const newBalance = Number(wallet.balance) + amount;
+    await tx.wallet.update({
+      where: { id: wallet.id },
+      data: { balance: new Prisma.Decimal(newBalance) },
+    });
+
+    await tx.walletTransaction.create({
+      data: {
+        walletId: wallet.id,
+        type: 'CREDIT',
+        amount: new Prisma.Decimal(amount),
+        reason: `Refund for appointment payment`,
+      },
+    });
+
+    await tx.notification.create({
+      data: {
+        userId: patientUserId,
+        type: 'SYSTEM',
+        title: 'Payment Refunded',
+        body: `NPR ${amount.toLocaleString()} has been refunded to your wallet balance.`,
+      },
+    });
+
+    return updatedPayment;
   });
 }
 

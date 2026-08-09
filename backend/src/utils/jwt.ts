@@ -19,7 +19,7 @@ export interface RefreshTokenPayload extends JwtPayload {
  */
 export function signAccessToken(payload: AccessTokenPayload): string {
   return jwt.sign(payload, env.JWT_ACCESS_SECRET, {
-    expiresIn: env.JWT_ACCESS_EXPIRES_IN,
+    expiresIn: env.JWT_ACCESS_EXPIRES_IN as any,
   });
 }
 
@@ -38,9 +38,9 @@ export function signRefreshToken(
   rememberMe: boolean
 ): string {
   return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-    expiresIn: rememberMe
+    expiresIn: (rememberMe
       ? env.JWT_REFRESH_EXPIRES_IN_REMEMBER_ME
-      : env.JWT_REFRESH_EXPIRES_IN,
+      : env.JWT_REFRESH_EXPIRES_IN) as any,
   });
 }
 

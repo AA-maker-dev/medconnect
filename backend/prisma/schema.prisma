@@ -338,13 +338,13 @@ model Appointment {
   id                String   @id @default(uuid())
 
   patientId         String
-  patient           Patient  @relation(fields: [patientId], references: [id])
+  patient           Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   doctorId          String
-  doctor            Doctor   @relation(fields: [doctorId], references: [id])
+  doctor            Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   diseaseId         String?
-  disease           Disease? @relation(fields: [diseaseId], references: [id])
+  disease           Disease? @relation(fields: [diseaseId], references: [id], onDelete: Cascade)
 
   date              DateTime
   startTime         String
@@ -425,7 +425,7 @@ model Message {
   chatRoom     ChatRoom @relation(fields: [chatRoomId], references: [id], onDelete: Cascade)
 
   senderId     String
-  sender       User     @relation("SentMessages", fields: [senderId], references: [id])
+  sender       User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   type         MessageType @default(TEXT)
   content      String?     // text content, or caption for media
@@ -433,7 +433,7 @@ model Message {
   fileName     String?
 
   replyToId    String?
-  replyTo      Message?  @relation("MessageReply", fields: [replyToId], references: [id])
+  replyTo      Message?  @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
   replies      Message[] @relation("MessageReply")
 
   status       MessageStatus @default(SENT)
@@ -455,9 +455,9 @@ model Message {
 model Prescription {
   id             String   @id @default(uuid())
   appointmentId  String   @unique
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   doctorId       String
-  doctor         Doctor   @relation(fields: [doctorId], references: [id])
+  doctor         Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   diagnosis      String
   advice         String?
@@ -503,13 +503,13 @@ model LabReport {
 model Review {
   id            String   @id @default(uuid())
   appointmentId String   @unique
-  appointment   Appointment @relation(fields: [appointmentId], references: [id])
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 
   patientId     String
-  patient       Patient  @relation(fields: [patientId], references: [id])
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   doctorId      String
-  doctor        Doctor   @relation(fields: [doctorId], references: [id])
+  doctor        Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
 
   rating        Int      // 1-5
   comment       String?
@@ -531,7 +531,7 @@ model Review {
 model Payment {
   id             String   @id @default(uuid())
   appointmentId  String   @unique
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 
   amount         Decimal  @db.Decimal(10, 2)
   gateway        PaymentGateway
@@ -556,12 +556,12 @@ model Invoice {
   id             String   @id @default(uuid())
   invoiceNumber  String   @unique
   appointmentId  String   @unique
-  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  appointment    Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
   paymentId      String?  @unique
   payment        Payment? @relation(fields: [paymentId], references: [id])
 
   patientId      String
-  patient        Patient  @relation(fields: [patientId], references: [id])
+  patient        Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
 
   subtotal       Decimal  @db.Decimal(10, 2)
   tax            Decimal  @default(0) @db.Decimal(10, 2)

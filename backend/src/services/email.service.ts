@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
   auth: env.SMTP_USER
     ? { user: env.SMTP_USER, pass: env.SMTP_PASS }
     : undefined,
-});
+} as any);
 
 async function send(to: string, subject: string, html: string) {
   // In development without SMTP configured, log instead of failing —

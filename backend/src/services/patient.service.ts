@@ -150,6 +150,7 @@ export async function listAppointments(
         doctor: { select: DOCTOR_SUMMARY_SELECT },
         review: { select: { id: true } },
         prescription: { select: { id: true } },
+        payment: { select: { status: true, gateway: true } },
       },
     }),
     prisma.appointment.count({ where }),

@@ -1,9 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { ArrowDownLeft, ArrowUpRight, Wallet as WalletIcon } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowDownLeft, ArrowUpRight, Wallet as WalletIcon, Plus, Loader2 } from 'lucide-react';
 import { useSetPageTitle } from '@/context/PageTitleContext';
 import { Skeleton } from '@/components/shared/Skeleton';
+import { Button } from '@/components/ui/Button';
+import { Dialog } from '@/components/ui/Dialog';
+import { Input } from '@/components/ui/Input';
+import { useToast } from '@/context/ToastContext';
 import { cn } from '@/utils/cn';
 import * as patientService from '@/services/patient.service';
+import * as paymentService from '@/services/payment.service';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString(undefined, {
@@ -15,32 +21,68 @@ function formatDate(iso: string) {
 
 export default function WalletPage() {
   useSetPageTitle('Wallet');
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+
+  const [topUpOpen, setTopUpOpen] = useState(false);
+  const [topUpAmount, setTopUpAmount] = useState<number>(500);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: wallet, isLoading } = useQuery({
     queryKey: ['patient', 'wallet'],
     queryFn: patientService.fetchWallet,
   });
 
+  const handleTopUp = async () => {
+    if (!topUpAmount || topUpAmount < 10) {
+      showToast('Minimum top-up amount is NPR 10', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await paymentService.topUpWallet(topUpAmount, 'WALLET');
+      showToast(`Successfully added NPR ${topUpAmount.toLocaleString()} to your wallet!`, 'success');
+      queryClient.invalidateQueries({ queryKey: ['patient', 'wallet'] });
+      setTopUpOpen(false);
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || err.message || 'Failed to top up wallet', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-lg bg-teal-900 p-6 sm:p-8 text-ivory-50 relative overflow-hidden">
+      {/* Wallet Header Card */}
+      <div className="rounded-lg bg-teal-900 p-6 sm:p-8 text-ivory-50 relative overflow-hidden flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
         <div
           aria-hidden
-          className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-coral-500/20 blur-3xl"
+          className="absolute -top-16 -right-16 h-48 w-48 rounded-full bg-coral-500/20 blur-3xl pointer-events-none"
         />
-        <div className="flex items-center gap-3 mb-3 relative">
-          <WalletIcon className="h-6 w-6 text-coral-500" />
-          <span className="text-sm text-ivory-100/70 font-body">Wallet balance</span>
+        <div>
+          <div className="flex items-center gap-3 mb-2 relative">
+            <WalletIcon className="h-6 w-6 text-coral-500" />
+            <span className="text-sm text-ivory-100/70 font-body">Wallet balance</span>
+          </div>
+          <p className="font-display text-4xl relative">
+            {isLoading ? (
+              <Skeleton className="h-10 w-40 bg-ivory-50/10" />
+            ) : (
+              `NPR ${Number(wallet?.balance ?? 0).toLocaleString()}`
+            )}
+          </p>
         </div>
-        <p className="font-display text-4xl relative">
-          {isLoading ? (
-            <Skeleton className="h-10 w-40 bg-ivory-50/10" />
-          ) : (
-            `NPR ${Number(wallet?.balance ?? 0).toLocaleString()}`
-          )}
-        </p>
+
+        <Button
+          onClick={() => setTopUpOpen(true)}
+          className="relative bg-coral-500 hover:bg-coral-600 text-white font-medium border-0 shrink-0 sm:w-auto h-11 flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" /> Add Funds
+        </Button>
       </div>
 
+      {/* Transaction History */}
       <div className="rounded-lg border border-slate-100 bg-paper-0 shadow-sm">
         <div className="px-5 sm:px-6 py-4 border-b border-slate-100">
           <h3 className="font-display text-lg text-slate-900">Transaction history</h3>
@@ -55,10 +97,7 @@ export default function WalletPage() {
             ))
           ) : wallet && wallet.transactions.length > 0 ? (
             wallet.transactions.map((txn) => (
-              <div
-                key={txn.id}
-                className="px-5 sm:px-6 py-4 flex items-center gap-4"
-              >
+              <div key={txn.id} className="px-5 sm:px-6 py-4 flex items-center gap-4">
                 <div
                   className={cn(
                     'h-9 w-9 rounded-full flex items-center justify-center shrink-0',
@@ -88,12 +127,57 @@ export default function WalletPage() {
               </div>
             ))
           ) : (
-            <div className="px-5 sm:px-6 py-10 text-center text-slate-500">
-              No transactions yet.
-            </div>
+            <div className="px-5 sm:px-6 py-10 text-center text-slate-500">No transactions yet.</div>
           )}
         </div>
       </div>
+
+      {/* Top-up Dialog */}
+      <Dialog open={topUpOpen} onClose={() => setTopUpOpen(false)} title="Top Up Wallet">
+        <div className="flex flex-col gap-5">
+          <div>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
+              Select Amount (NPR)
+            </label>
+            <div className="grid grid-cols-4 gap-2 mb-3">
+              {[500, 1000, 2000, 5000].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  onClick={() => setTopUpAmount(amt)}
+                  className={cn(
+                    'py-2 rounded-lg border text-xs font-semibold transition-all',
+                    topUpAmount === amt
+                      ? 'border-teal-700 bg-teal-50 text-teal-900 shadow-xs'
+                      : 'border-slate-200 text-slate-700 hover:border-slate-300'
+                  )}
+                >
+                  {amt}
+                </button>
+              ))}
+            </div>
+
+            <Input
+              type="number"
+              min={10}
+              max={100000}
+              value={topUpAmount}
+              onChange={(e) => setTopUpAmount(Number(e.target.value))}
+              placeholder="Custom amount"
+            />
+          </div>
+
+          <Button disabled={isSubmitting} onClick={handleTopUp} className="w-full h-11">
+            {isSubmitting ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" /> Adding Funds...
+              </span>
+            ) : (
+              `Top Up NPR ${topUpAmount.toLocaleString()}`
+            )}
+          </Button>
+        </div>
+      </Dialog>
     </div>
   );
 }

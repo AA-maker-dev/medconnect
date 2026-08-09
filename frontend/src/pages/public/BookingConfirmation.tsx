@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { CheckCircle2, CalendarClock, MapPin, Video, Clock3 } from 'lucide-react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { CheckCircle2, CalendarClock, MapPin, Video, Clock3, CreditCard, ShieldCheck } from 'lucide-react';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { Button } from '@/components/ui/Button';
+import { PaymentModal } from '@/components/payment/PaymentModal';
 import * as appointmentService from '../../services/appointment.service';
 
 function formatDate(iso: string) {
@@ -16,6 +18,8 @@ function formatDate(iso: string) {
 
 export default function BookingConfirmationPage() {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
   const { data: appointment, isLoading } = useQuery({
     queryKey: ['appointment', id],
@@ -39,6 +43,10 @@ export default function BookingConfirmationPage() {
     );
   }
 
+  const isPaid = (appointment as any).payment?.status === 'SUCCESS';
+  const doctorFullName = `${appointment.doctor.firstName} ${appointment.doctor.lastName}`;
+  const fee = Number(appointment.doctor.consultationFee);
+
   return (
     <div className="mx-auto max-w-2xl px-5 sm:px-8 py-16">
       <div className="rounded-xl border border-slate-100 bg-paper-0 shadow-sm p-8 text-center">
@@ -47,8 +55,7 @@ export default function BookingConfirmationPage() {
         </div>
         <h1 className="font-display text-2xl text-slate-900 mb-2">Appointment requested</h1>
         <p className="text-slate-500 mb-8">
-          Dr. {appointment.doctor.firstName} {appointment.doctor.lastName} will review your
-          request. You'll get a notification the moment it's approved.
+          Dr. {doctorFullName} will review your request. You'll get a notification the moment it's approved.
         </p>
 
         <div className="rounded-lg bg-ivory-100 p-5 text-left flex flex-col gap-3 mb-8">
@@ -78,23 +85,49 @@ export default function BookingConfirmationPage() {
             <span className="text-xs font-semibold uppercase tracking-wide text-amber-600 bg-amber-100 px-2.5 py-1 rounded-full w-fit">
               {appointment.status}
             </span>
-            <span className="text-sm font-semibold text-slate-900">
-              NPR {Number(appointment.doctor.consultationFee).toLocaleString()}
-            </span>
+            <div className="text-right">
+              <span className="text-sm font-semibold text-slate-900 block">
+                NPR {fee.toLocaleString()}
+              </span>
+              {isPaid ? (
+                <span className="text-xs text-emerald-600 font-semibold flex items-center justify-end gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5" /> Paid
+                </span>
+              ) : (
+                <span className="text-xs text-amber-600 font-medium block">Payment Pending</span>
+              )}
+            </div>
           </div>
         </div>
 
+        {/* Action Controls */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link to="/patient/appointments">
-            <Button className="w-auto">View my appointments</Button>
-          </Link>
-          <Link to="/doctors">
-            <Button variant="outline" className="w-auto">
-              Browse more doctors
+          {!isPaid && (
+            <Button
+              onClick={() => setPaymentModalOpen(true)}
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2"
+            >
+              <CreditCard className="h-4 w-4" /> Pay Consultation Fee (eSewa / FonePay / Wallet)
+            </Button>
+          )}
+          <Link to="/patient/appointments" className="w-full sm:w-auto">
+            <Button variant={isPaid ? 'primary' : 'outline'} className="w-full">
+              View my appointments
             </Button>
           </Link>
         </div>
       </div>
+
+      {appointment && (
+        <PaymentModal
+          open={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          appointmentId={appointment.id}
+          doctorName={doctorFullName}
+          consultationFee={fee}
+          onSuccess={() => queryClient.invalidateQueries({ queryKey: ['appointment', id] })}
+        />
+      )}
     </div>
   );
 }

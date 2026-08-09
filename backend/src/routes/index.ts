@@ -8,6 +8,7 @@ import doctorDashboardRoutes from './doctorDashboard.routes';
 import adminRoutes from './admin.routes';
 import appointmentRoutes from './appointment.routes';
 import chatRoutes from './chat.routes';
+import paymentRoutes from './payment.routes';
 
 const router = Router();
 
@@ -20,8 +21,8 @@ router.use('/doctor', doctorDashboardRoutes);
 router.use('/admin', adminRoutes);
 router.use('/appointments', appointmentRoutes);
 router.use('/chat', chatRoutes);
+router.use('/payments', paymentRoutes);
 
-// Phase 9+: router.use('/payments', paymentRoutes);
 // Phase 10+: router.use('/prescriptions', prescriptionRoutes);
 
 export default router;

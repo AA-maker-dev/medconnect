@@ -13,6 +13,8 @@ import DoctorDirectoryPage from '@/pages/public/DoctorDirectory';
 import DoctorDetailPage from '@/pages/public/DoctorDetail';
 import SearchPage from '@/pages/public/Search';
 import BookingConfirmationPage from '@/pages/public/BookingConfirmation';
+import EsewaCallbackPage from '@/pages/public/EsewaCallback';
+import FonepayCallbackPage from '@/pages/public/FonepayCallback';
 import LoginPage from '@/pages/auth/Login';
 import AdminLoginPage from '@/pages/auth/AdminLogin';
 import RegisterChoicePage from '@/pages/auth/RegisterChoice';
@@ -107,6 +109,9 @@ export default function App() {
                     path="/appointments/:id/confirmation"
                     element={<BookingConfirmationPage />}
                   />
+                  <Route path="/payment/esewa/success" element={<EsewaCallbackPage />} />
+                  <Route path="/payment/esewa/failure" element={<EsewaCallbackPage />} />
+                  <Route path="/payment/fonepay/callback" element={<FonepayCallbackPage />} />
                 </Route>
 
                 {/* Auth pages — redirect away if already logged in */}

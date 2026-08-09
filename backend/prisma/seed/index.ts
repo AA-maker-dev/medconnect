@@ -669,27 +669,40 @@ async function seedModerationReview(doctorIds: string[], patientIds: string[]) {
 
 async function seedDemoAdmin() {
   console.log('Seeding demo admin account...');
-  const email = 'admin@medconnect.demo';
+  
+  const adminsToSeed = [
+    { email: 'admin@medconnect.demo', password: DEMO_PASSWORD, firstName: 'Platform', lastName: 'Admin' },
+    { email: 'khatiwadaabhi123@gmail.com', password: 'Bai2061kun8dha13', firstName: 'Abhi', lastName: 'Khatiwada' },
+  ];
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    console.log('  · Admin already exists, skipping');
-    return;
+  for (const adminData of adminsToSeed) {
+    const existing = await prisma.user.findUnique({ where: { email: adminData.email } });
+    const passwordHash = await bcrypt.hash(adminData.password, 12);
+
+    if (existing) {
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          passwordHash,
+          role: 'ADMIN',
+          isEmailVerified: true,
+        },
+      });
+      console.log(`  ✓ Updated Admin (${adminData.email})`);
+    } else {
+      await prisma.user.create({
+        data: {
+          email: adminData.email,
+          passwordHash,
+          role: 'ADMIN',
+          isEmailVerified: true,
+          wallet: { create: { balance: 0 } },
+          admin: { create: { firstName: adminData.firstName, lastName: adminData.lastName } },
+        },
+      });
+      console.log(`  ✓ Created Admin (${adminData.email})`);
+    }
   }
-
-  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 12);
-  await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      role: 'ADMIN',
-      isEmailVerified: true,
-      wallet: { create: { balance: 0 } },
-      admin: { create: { firstName: 'Platform', lastName: 'Admin' } },
-    },
-  });
-
-  console.log('  ✓ Demo admin created');
 }
 
 async function seedChatMessages(doctorIds: string[], patientIds: string[]) {
