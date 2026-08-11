@@ -12,6 +12,9 @@ import LandingPage from '@/pages/public/Landing';
 import DoctorDirectoryPage from '@/pages/public/DoctorDirectory';
 import DoctorDetailPage from '@/pages/public/DoctorDetail';
 import SearchPage from '@/pages/public/Search';
+import AboutPage from '@/pages/public/About';
+import ContactPage from '@/pages/public/Contact';
+import SpecialtiesPage from '@/pages/public/Specialties';
 import BookingConfirmationPage from '@/pages/public/BookingConfirmation';
 import EsewaCallbackPage from '@/pages/public/EsewaCallback';
 import FonepayCallbackPage from '@/pages/public/FonepayCallback';
@@ -71,18 +74,6 @@ const queryClient = new QueryClient({
   },
 });
 
-// Full doctor directory / search / about / contact pages are content-heavy
-// enough to be their own phase-4-adjacent work; these placeholders keep
-// every nav link in the Phase 3 navbar/footer from dead-ending at "/".
-function PublicPagePlaceholder({ label }: { label: string }) {
-  return (
-    <div className="min-h-[60vh] flex items-center justify-center font-body text-slate-500 px-6 text-center">
-      {label} page is coming in a later phase.
-    </div>
-  );
-}
-
-
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -97,9 +88,9 @@ export default function App() {
                   <Route path="/" element={<LandingPage />} />
                   <Route path="/doctors" element={<DoctorDirectoryPage />} />
                   <Route path="/doctors/:id" element={<DoctorDetailPage />} />
-                  <Route path="/specialties" element={<PublicPagePlaceholder label="Specialties" />} />
-                  <Route path="/about" element={<PublicPagePlaceholder label="About" />} />
-                  <Route path="/contact" element={<PublicPagePlaceholder label="Contact" />} />
+                  <Route path="/specialties" element={<SpecialtiesPage />} />
+                  <Route path="/about" element={<AboutPage />} />
+                  <Route path="/contact" element={<ContactPage />} />
                   <Route path="/search" element={<SearchPage />} />
                 </Route>
 

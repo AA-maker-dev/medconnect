@@ -1,4 +1,5 @@
 import { HeroSection } from '@/components/landing/HeroSection';
+import { SpecialtiesSection } from '@/components/landing/SpecialtiesSection';
 import { PopularDepartments } from '@/components/landing/PopularDepartments';
 import { DoctorShowcaseSection } from '@/components/landing/DoctorShowcaseSection';
 import { StatisticsSection } from '@/components/landing/StatisticsSection';
@@ -13,6 +14,8 @@ export default function LandingPage() {
   return (
     <>
       <HeroSection />
+
+      <SpecialtiesSection />
 
       <EmergencyContactSection />
 
