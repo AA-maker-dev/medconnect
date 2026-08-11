@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Mail, MapPin, Phone, Clock, Send } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { useToast } from '@/context/ToastContext';
+import emailjs from '@emailjs/browser';
 
 const CONTACT_INFO = [
   {
@@ -27,6 +28,10 @@ const CONTACT_INFO = [
   },
 ];
 
+const EMAILJS_SERVICE_ID = 'service_vdj9mus';
+const EMAILJS_PUBLIC_KEY = 'BTXIS1-AD5JDXk452';
+const EMAILJS_TEMPLATE_ID = 'template_ect6hfw';
+
 export default function ContactPage() {
   const { showToast } = useToast();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -40,14 +45,17 @@ export default function ContactPage() {
     }
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
+      await emailjs.send(
+        EMAILJS_SERVICE_ID,
+        EMAILJS_TEMPLATE_ID,
+        {
+          from_name: form.name,
+          from_email: form.email,
+          subject: form.subject || 'New contact form message',
+          message: form.message,
+        },
+        EMAILJS_PUBLIC_KEY
+      );
       setForm({ name: '', email: '', subject: '', message: '' });
       showToast('Message sent! We will get back to you within 24 hours.', 'success');
     } catch {
