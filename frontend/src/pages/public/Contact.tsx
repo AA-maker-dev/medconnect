@@ -30,7 +30,13 @@ const CONTACT_INFO = [
 
 const EMAILJS_SERVICE_ID = 'service_vdj9mus';
 const EMAILJS_PUBLIC_KEY = 'BTXIS1-AD5JDXk452';
+// Confirmation email sent back to the person who filled out the form.
 const EMAILJS_TEMPLATE_ID = 'template_ect6hfw';
+// Notification email sent to the MedConnect support inbox with the full
+// message. Create this template in the EmailJS dashboard (fixed "To Email"
+// = your support address, body using {{name}}/{{email}}/{{title}}/{{message}})
+// and paste its real Template ID here.
+const EMAILJS_SUPPORT_TEMPLATE_ID = 'template_qxmcuct';
 
 emailjs.init(EMAILJS_PUBLIC_KEY);
 
@@ -47,24 +53,53 @@ export default function ContactPage() {
     }
     setIsSubmitting(true);
     try {
-      await emailjs.send(
+      const templateParams = {
+        // The "Auto-Reply" template (template_ect6hfw) expects
+        // {{email}} for the "To Email" field and {{name}} / {{title}}
+        // in its body. Sending from_name/from_email/subject (the old
+        // keys) left {{email}} empty, so EmailJS rejected every send
+        // with a blank recipient. Keys below match the template, and are
+        // reused for the support notification template below.
+        email: form.email,
+        name: form.name,
+        title: form.subject || 'New contact form message',
+        message: form.message,
+      };
+
+      // Confirmation email back to the person who submitted the form.
+      const confirmationSend = emailjs.send(
         EMAILJS_SERVICE_ID,
         EMAILJS_TEMPLATE_ID,
-        {
-          from_name: form.name,
-          from_email: form.email,
-          reply_to: form.email,
-          subject: form.subject || 'New contact form message',
-          message: form.message,
-          to_name: 'MedConnect Support',
-        },
+        templateParams,
         EMAILJS_PUBLIC_KEY
       );
+
+      // Notification email to the support inbox with the full message.
+      // Skipped until a real template ID is configured above, so this
+      // doesn't error out before that template exists.
+      const supportSend =
+        EMAILJS_SUPPORT_TEMPLATE_ID === 'REPLACE_WITH_YOUR_SUPPORT_TEMPLATE_ID'
+          ? Promise.resolve(null)
+          : emailjs.send(
+              EMAILJS_SERVICE_ID,
+              EMAILJS_SUPPORT_TEMPLATE_ID,
+              templateParams,
+              EMAILJS_PUBLIC_KEY
+            );
+
+      await Promise.all([confirmationSend, supportSend]);
       setForm({ name: '', email: '', subject: '', message: '' });
       showToast('Message sent! We will get back to you within 24 hours.', 'success');
     } catch (err) {
       console.error('EmailJS send failed:', err);
-      const message = err instanceof Error ? err.message : 'Failed to send message. Please try again later.';
+      // EmailJS rejects with { status, text }, not a JS Error instance,
+      // so `err instanceof Error` was always false and we always fell
+      // through to the generic fallback message, hiding the real cause.
+      const emailjsError = err as { status?: number; text?: string };
+      const message =
+        emailjsError?.text ||
+        (err instanceof Error ? err.message : null) ||
+        'Failed to send message. Please try again later.';
       showToast(message, 'error');
     } finally {
       setIsSubmitting(false);
