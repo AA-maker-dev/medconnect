@@ -3,11 +3,12 @@ import { authenticate, authorize } from '../middleware/authenticate';
 import { attachPatientProfile } from '../middleware/attachPatientProfile';
 import { validate } from '../middleware/validate';
 import * as patientController from '../controllers/patient.controller';
-import { 
+import {
   updatePatientProfileSchema,
   listAppointmentsQuerySchema,
   createMedicalHistorySchema,
   addFavoriteDoctorSchema,
+  createReviewSchema,
   paginationQuerySchema,
 } from '../validators/patient.validator';
 
@@ -48,6 +49,12 @@ router.post(
 );
 router.delete('/me/favorite-doctors/:doctorId', patientController.removeFavoriteDoctor);
 router.get('/me/favorite-doctors/:doctorId', patientController.checkFavoriteDoctor);
+
+router.post(
+  '/me/reviews',
+  validate(createReviewSchema),
+  patientController.createReview
+);
 
 router.get('/me/prescriptions', patientController.listPrescriptions);
 router.get('/me/invoices', patientController.listInvoices);

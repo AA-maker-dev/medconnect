@@ -98,6 +98,16 @@ export async function checkFavoriteDoctor(doctorId: string) {
   return data.data.isFavorited;
 }
 
+export async function createReview(payload: {
+  appointmentId: string;
+  doctorId: string;
+  rating?: number | null;
+  comment?: string | null;
+}) {
+  const { data } = await api.post<ApiResponse<any>>('/patients/me/reviews', payload);
+  return data.data;
+}
+
 export async function fetchPrescriptions() {
   const { data } = await api.get<ApiResponse<Prescription[]>>('/patients/me/prescriptions');
   return data.data;

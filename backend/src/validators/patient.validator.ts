@@ -44,6 +44,15 @@ export const addFavoriteDoctorSchema = z.object({
   }),
 });
 
+export const createReviewSchema = z.object({
+  body: z.object({
+    appointmentId: z.string().uuid('Invalid appointment id'),
+    doctorId: z.string().uuid('Invalid doctor id'),
+    rating: z.coerce.number().int().min(1).max(5).nullable().optional(),
+    comment: z.string().trim().max(1000).optional().nullable(),
+  }),
+});
+
 export const paginationQuerySchema = z.object({
   query: z.object({
     page: z.coerce.number().int().min(1).optional().default(1),

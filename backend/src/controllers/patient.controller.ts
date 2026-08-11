@@ -68,6 +68,11 @@ export const checkFavoriteDoctor = asyncHandler(async (req: Request, res: Respon
   sendSuccess(res, 200, 'Favorite status fetched', { isFavorited });
 });
 
+export const createReview = asyncHandler(async (req: Request, res: Response) => {
+  const review = await patientService.createReview(req.patientId!, req.body);
+  sendSuccess(res, 201, 'Review submitted', review);
+});
+
 export const listPrescriptions = asyncHandler(async (req: Request, res: Response) => {
   const prescriptions = await patientService.listPrescriptions(req.patientId!);
   sendSuccess(res, 200, 'Prescriptions fetched', prescriptions);

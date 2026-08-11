@@ -228,6 +228,49 @@ export async function isDoctorFavorited(patientId: string, doctorId: string) {
   return Boolean(existing);
 }
 
+export async function createReview(patientId: string, input: {
+  appointmentId: string;
+  doctorId: string;
+  rating?: number | null;
+  comment?: string | null;
+}) {
+  const appointment = await prisma.appointment.findUnique({
+    where: { id: input.appointmentId },
+    select: { patientId: true, doctorId: true, status: true },
+  });
+  if (!appointment) throw ApiError.notFound('Appointment not found');
+  if (appointment.patientId !== patientId) throw ApiError.forbidden('You do not own this appointment');
+  if (appointment.doctorId !== input.doctorId) throw ApiError.badRequest('Doctor does not match this appointment');
+  if (appointment.status !== 'COMPLETED') throw ApiError.badRequest('You can only review completed appointments');
+
+  const existing = await prisma.review.findUnique({
+    where: { appointmentId: input.appointmentId },
+  });
+  if (existing) throw ApiError.conflict('You have already reviewed this appointment');
+
+  const review = await prisma.review.create({
+    data: {
+      appointmentId: input.appointmentId,
+      patientId,
+      doctorId: input.doctorId,
+      rating: input.rating ?? 5,
+      comment: input.comment ?? '',
+    },
+    select: { id: true, rating: true, comment: true, createdAt: true },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: (await prisma.doctor.findUnique({ where: { id: input.doctorId }, select: { userId: true } }))!.userId,
+      type: 'REVIEW_RECEIVED',
+      title: 'New review received',
+      body: `A patient has left you a ${review.rating}-star review.`,
+    },
+  });
+
+  return review;
+}
+
 // ==================================================
 // Prescriptions
 // ==================================================

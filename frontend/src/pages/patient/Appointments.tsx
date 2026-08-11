@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/shared/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { PaymentModal } from '@/components/payment/PaymentModal';
 import { RescheduleModal } from '@/components/appointment/RescheduleModal';
+import { ReviewModal } from '@/components/review/ReviewModal';
 import { cn } from '@/utils/cn';
 import * as patientService from '@/services/patient.service';
 import type { AppointmentStatus } from '@/types/patient.types';
@@ -38,6 +39,7 @@ export default function PatientAppointmentsPage() {
   const [tab, setTab] = useState<Tab>('upcoming');
   const [activeApptForPayment, setActiveApptForPayment] = useState<any>(null);
   const [activeApptForReschedule, setActiveApptForReschedule] = useState<any>(null);
+  const [activeApptForReview, setActiveApptForReview] = useState<any>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['patient', 'appointments', tab],
@@ -146,7 +148,17 @@ export default function PatientAppointmentsPage() {
                     </Button>
                   )}
                   {tab === 'past' && appt.status === 'COMPLETED' && !appt.review && (
-                    <Button variant="ghost" size="sm" className="w-auto">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-auto"
+                      onClick={() =>
+                        setActiveApptForReview({
+                          ...appt,
+                          doctorId: appt.doctor.id,
+                        })
+                      }
+                    >
                       <Star className="h-4 w-4" /> Leave review
                     </Button>
                   )}
@@ -210,6 +222,25 @@ export default function PatientAppointmentsPage() {
               firstName: activeApptForReschedule.doctor.firstName,
               lastName: activeApptForReschedule.doctor.lastName,
               specialization: activeApptForReschedule.doctor.specialization,
+            },
+          }}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['patient', 'appointments'] });
+          }}
+        />
+      )}
+
+      {activeApptForReview && (
+        <ReviewModal
+          open={Boolean(activeApptForReview)}
+          onClose={() => setActiveApptForReview(null)}
+          appointment={{
+            id: activeApptForReview.id,
+            doctorId: activeApptForReview.doctorId,
+            doctor: {
+              firstName: activeApptForReview.doctor.firstName,
+              lastName: activeApptForReview.doctor.lastName,
+              specialization: activeApptForReview.doctor.specialization,
             },
           }}
           onSuccess={() => {
