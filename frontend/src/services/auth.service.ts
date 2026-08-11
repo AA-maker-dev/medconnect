@@ -119,13 +119,21 @@ export async function fetchCurrentUser() {
 }
 
 /** Called once on app load to silently restore a session from the refresh cookie. */
-export async function tryRestoreSession() {
-  try {
-    const { data } = await api.post<ApiResponse<LoginResponseData>>('/auth/refresh');
-    setAccessToken(data.data.accessToken);
-    return data.data.user;
-  } catch {
-    setAccessToken(null);
-    return null;
+export async function tryRestoreSession(maxRetries = 2) {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { data } = await api.post<ApiResponse<LoginResponseData>>('/auth/refresh');
+      setAccessToken(data.data.accessToken);
+      return data.data.user;
+    } catch (err) {
+      console.warn(`Session restore attempt ${attempt} failed:`, err);
+      setAccessToken(null);
+      if (attempt === maxRetries) {
+        console.warn('Session restore failed after max retries. Redirecting to login.');
+        return null;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+    }
   }
+  return null;
 }
