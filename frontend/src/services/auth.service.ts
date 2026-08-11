@@ -1,4 +1,5 @@
 import { api, setAccessToken } from './api';
+import { getStoredRefreshToken, setStoredRefreshToken, clearStoredRefreshToken } from '@/utils/authStorage';
 import type {
   ApiResponse,
   AuthUser,
@@ -35,6 +36,7 @@ export async function login(payload: LoginPayload) {
     payload
   );
   setAccessToken(data.data.accessToken);
+  setStoredRefreshToken(data.data.refreshToken);
   return data.data;
 }
 
@@ -44,6 +46,7 @@ export async function adminLogin(payload: LoginPayload) {
     payload
   );
   setAccessToken(data.data.accessToken);
+  setStoredRefreshToken(data.data.refreshToken);
   return data.data;
 }
 
@@ -52,6 +55,7 @@ export async function logout() {
     await api.post('/auth/logout');
   } finally {
     setAccessToken(null);
+    clearStoredRefreshToken();
   }
 }
 
@@ -60,6 +64,7 @@ export async function logoutAllDevices() {
     await api.post('/auth/logout-all');
   } finally {
     setAccessToken(null);
+    clearStoredRefreshToken();
   }
 }
 
@@ -120,14 +125,20 @@ export async function fetchCurrentUser() {
 
 /** Called once on app load to silently restore a session from the refresh cookie. */
 export async function tryRestoreSession(maxRetries = 2) {
+  const storedRefreshToken = getStoredRefreshToken();
+
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      const { data } = await api.post<ApiResponse<LoginResponseData>>('/auth/refresh');
+      const { data } = await api.post<ApiResponse<LoginResponseData>>('/auth/refresh', {
+        refreshToken: storedRefreshToken ?? undefined,
+      });
       setAccessToken(data.data.accessToken);
+      setStoredRefreshToken(data.data.refreshToken);
       return data.data.user;
     } catch (err) {
       console.warn(`Session restore attempt ${attempt} failed:`, err);
       setAccessToken(null);
+      setStoredRefreshToken(null);
       if (attempt === maxRetries) {
         console.warn('Session restore failed after max retries. Redirecting to login.');
         return null;

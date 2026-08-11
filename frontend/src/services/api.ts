@@ -1,4 +1,5 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { getStoredRefreshToken, setStoredRefreshToken } from '@/utils/authStorage';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api';
 
@@ -43,11 +44,15 @@ async function performRefresh(): Promise<string | null> {
   try {
     const response = await axios.post(
       `${API_BASE_URL}/auth/refresh`,
-      {},
+      { refreshToken: getStoredRefreshToken() ?? undefined },
       { withCredentials: true }
     );
     const newAccessToken = response.data?.data?.accessToken as string | undefined;
+    const newRefreshToken = response.data?.data?.refreshToken as string | undefined;
     setAccessToken(newAccessToken ?? null);
+    if (newRefreshToken) {
+      setStoredRefreshToken(newRefreshToken);
+    }
     return newAccessToken ?? null;
   } catch {
     setAccessToken(null);
