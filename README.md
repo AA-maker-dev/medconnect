@@ -121,4 +121,3 @@ diseases, appointments, per-appointment chat rooms & messages,
 prescriptions & lab reports, reviews, payments/invoices/wallet, and
 notifications. See `docs/ARCHITECTURE.md §2` for why it's shaped this
 way.
-
