@@ -30,6 +30,12 @@ export const getAvailableSlots = asyncHandler(async (req: Request, res: Response
     sendSuccess(res, 200, 'Available slots fetched', slots);
 });
 
+export const getAvailableDates = asyncHandler(async (req: Request, res: Response) => {
+    const { startDate, endDate } = req.validatedQuery as { startDate: string; endDate: string };
+    const availableDates = await appointmentService.getAvailableDates(req.params.doctorId, startDate, endDate);
+    sendSuccess(res, 200, 'Available dates fetched', availableDates);
+});
+
 export const createAppointment = asyncHandler(async (req: Request, res: Response) => {
     const appointment = await appointmentService.createAppointment(req.patientId!, req.body);
     sendSuccess(res, 201, 'Appointment booked — awaiting doctor confirmation', appointment);

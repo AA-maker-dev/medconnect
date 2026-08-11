@@ -31,6 +31,14 @@ export async function fetchAvailableSlots(doctorId: string, date: string) {
   return data.data;
 }
 
+export async function fetchAvailableDates(doctorId: string, startDate: string, endDate: string) {
+  const { data } = await api.get<ApiResponse<string[]>>(
+    `/appointments/doctors/${doctorId}/available-dates`,
+    { params: { startDate, endDate } }
+  );
+  return data.data;
+}
+
 export async function bookAppointment(payload: BookAppointmentPayload) {
   const { data } = await api.post<ApiResponse<BookedAppointment>>('/appointments', payload);
   return data.data;
