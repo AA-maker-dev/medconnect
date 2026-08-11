@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, MapPin, Phone, Clock, Send } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
@@ -32,6 +32,8 @@ const EMAILJS_SERVICE_ID = 'service_vdj9mus';
 const EMAILJS_PUBLIC_KEY = 'BTXIS1-AD5JDXk452';
 const EMAILJS_TEMPLATE_ID = 'template_ect6hfw';
 
+emailjs.init(EMAILJS_PUBLIC_KEY);
+
 export default function ContactPage() {
   const { showToast } = useToast();
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
@@ -51,15 +53,19 @@ export default function ContactPage() {
         {
           from_name: form.name,
           from_email: form.email,
+          reply_to: form.email,
           subject: form.subject || 'New contact form message',
           message: form.message,
+          to_name: 'MedConnect Support',
         },
         EMAILJS_PUBLIC_KEY
       );
       setForm({ name: '', email: '', subject: '', message: '' });
       showToast('Message sent! We will get back to you within 24 hours.', 'success');
-    } catch {
-      showToast('Failed to send message. Please try again later.', 'error');
+    } catch (err) {
+      console.error('EmailJS send failed:', err);
+      const message = err instanceof Error ? err.message : 'Failed to send message. Please try again later.';
+      showToast(message, 'error');
     } finally {
       setIsSubmitting(false);
     }
