@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { sendSuccess } from '../utils/ApiResponse';
 import { prisma } from '../config/prisma';
+import { sendContactEmail } from '../services/email.service';
 
 export const listSpecializations = asyncHandler(async (_req: Request, res: Response) => {
   const specializations = await prisma.specialization.findMany({
@@ -19,12 +20,6 @@ export const listHospitals = asyncHandler(async (_req: Request, res: Response) =
   sendSuccess(res, 200, 'Hospitals fetched', hospitals);
 });
 
-/**
- * Every disease, with its specialization attached — this is the backbone
- * of the "select a disease" step in the Smart Appointment System: picking
- * a disease on the frontend immediately tells us which specialization
- * (and therefore which doctors) to recommend.
- */
 export const listDiseases = asyncHandler(async (_req: Request, res: Response) => {
   const diseases = await prisma.disease.findMany({
     orderBy: { name: 'asc' },
@@ -38,7 +33,6 @@ export const listDiseases = asyncHandler(async (_req: Request, res: Response) =>
   sendSuccess(res, 200, 'Diseases fetched', diseases);
 });
 
-/** Platform-wide counters for the landing page stats section. */
 export const getPlatformStats = asyncHandler(async (_req: Request, res: Response) => {
   const [verifiedDoctors, patients, completedAppointments, specializations] =
     await Promise.all([
@@ -54,4 +48,14 @@ export const getPlatformStats = asyncHandler(async (_req: Request, res: Response
     completedAppointments,
     specializations,
   });
+});
+
+export const submitContactForm = asyncHandler(async (req: Request, res: Response) => {
+  const { name, email, subject, message } = req.body;
+  try {
+    await sendContactEmail('rautstevensr@gmail.com', name, email, subject || 'New contact form message', message);
+  } catch (err) {
+    console.error('Contact email failed:', err);
+  }
+  sendSuccess(res, 200, 'Message sent successfully');
 });

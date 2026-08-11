@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { CalendarClock, MapPin, Video, FileText, Star, CreditCard, ShieldCheck } from 'lucide-react';
+import { CalendarClock, MapPin, Video, FileText, Star, CreditCard, ShieldCheck, RefreshCw } from 'lucide-react';
 import { useSetPageTitle } from '@/context/PageTitleContext';
 import { Skeleton } from '@/components/shared/Skeleton';
 import { Button } from '@/components/ui/Button';
 import { PaymentModal } from '@/components/payment/PaymentModal';
+import { RescheduleModal } from '@/components/appointment/RescheduleModal';
 import { cn } from '@/utils/cn';
 import * as patientService from '@/services/patient.service';
 import type { AppointmentStatus } from '@/types/patient.types';
@@ -36,6 +37,7 @@ export default function PatientAppointmentsPage() {
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>('upcoming');
   const [activeApptForPayment, setActiveApptForPayment] = useState<any>(null);
+  const [activeApptForReschedule, setActiveApptForReschedule] = useState<any>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['patient', 'appointments', tab],
@@ -148,6 +150,21 @@ export default function PatientAppointmentsPage() {
                       <Star className="h-4 w-4" /> Leave review
                     </Button>
                   )}
+                  {tab === 'past' && appt.status === 'COMPLETED' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-auto"
+                      onClick={() =>
+                        setActiveApptForReschedule({
+                          ...appt,
+                          doctorId: appt.doctor.id,
+                        })
+                      }
+                    >
+                      <RefreshCw className="h-4 w-4" /> Reschedule
+                    </Button>
+                  )}
                 </div>
               </div>
             );
@@ -178,6 +195,25 @@ export default function PatientAppointmentsPage() {
           onSuccess={() => {
             queryClient.invalidateQueries({ queryKey: ['patient', 'appointments'] });
             queryClient.invalidateQueries({ queryKey: ['patient', 'invoices'] });
+          }}
+        />
+      )}
+
+      {activeApptForReschedule && (
+        <RescheduleModal
+          open={Boolean(activeApptForReschedule)}
+          onClose={() => setActiveApptForReschedule(null)}
+          appointment={{
+            id: activeApptForReschedule.id,
+            doctorId: activeApptForReschedule.doctorId,
+            doctor: {
+              firstName: activeApptForReschedule.doctor.firstName,
+              lastName: activeApptForReschedule.doctor.lastName,
+              specialization: activeApptForReschedule.doctor.specialization,
+            },
+          }}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['patient', 'appointments'] });
           }}
         />
       )}

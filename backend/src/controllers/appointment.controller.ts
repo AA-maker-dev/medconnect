@@ -43,3 +43,8 @@ export const getAppointmentById = asyncHandler(async (req: Request, res: Respons
     );
     sendSuccess(res, 200, 'Appointment fetched', appointment);
 });
+
+export const rescheduleAppointment = asyncHandler(async (req: Request, res: Response) => {
+    const appointment = await appointmentService.rescheduleAppointment(req.patientId!, req.body);
+    sendSuccess(res, 201, 'Appointment rescheduled — awaiting doctor confirmation', appointment);
+});

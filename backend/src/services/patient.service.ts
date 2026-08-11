@@ -221,6 +221,13 @@ export async function removeFavoriteDoctor(patientId: string, doctorId: string) 
   return { removed: true };
 }
 
+export async function isDoctorFavorited(patientId: string, doctorId: string) {
+  const existing = await prisma.favoriteDoctor.findUnique({
+    where: { patientId_doctorId: { patientId, doctorId } },
+  });
+  return Boolean(existing);
+}
+
 // ==================================================
 // Prescriptions
 // ==================================================

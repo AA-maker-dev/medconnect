@@ -75,3 +75,16 @@ export async function sendDoctorApplicationReceivedEmail(to: string, name: strin
     )
   );
 }
+
+export async function sendContactEmail(to: string, fromName: string, fromEmail: string, subject: string, message: string) {
+  await send(
+    to,
+    `Contact form: ${subject || 'New message from MedConnect'}`,
+    wrapper(
+      `Message from ${fromName}`,
+      `<p><strong>From:</strong> ${fromName} &lt;${fromEmail}&gt;</p>
+       <p><strong>Subject:</strong> ${subject || 'No subject'}</p>
+       <p style="margin-top: 12px; white-space: pre-wrap;">${message}</p>`
+    )
+  );
+}

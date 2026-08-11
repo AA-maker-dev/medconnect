@@ -11,6 +11,7 @@ import {
   CalendarDays,
   Video,
   Building2,
+  Heart,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
@@ -20,6 +21,7 @@ import { useToast } from '@/context/ToastContext';
 import { extractErrorMessage } from '@/services/api';
 import * as doctorService from '@/services/doctor.service';
 import * as appointmentService from '@/services/appointment.service';
+import * as patientService from '@/services/patient.service';
 import { cn } from '@/utils/cn';
 import type { ConsultationType } from '@/types/appointment.types';
 
@@ -50,12 +52,52 @@ export default function DoctorDetailPage() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [consultationType, setConsultationType] = useState<ConsultationType>('IN_PERSON');
   const [reasonForVisit, setReasonForVisit] = useState('');
+  const [isFavorited, setIsFavorited] = useState(false);
 
   const { data: doctor, isLoading: doctorLoading } = useQuery({
     queryKey: ['doctor-detail', id],
     queryFn: () => doctorService.getDoctorById(id!),
     enabled: Boolean(id),
   });
+
+  const { data: favoriteStatus } = useQuery({
+    queryKey: ['doctor-favorite', id],
+    queryFn: () => patientService.checkFavoriteDoctor(id!),
+    enabled: Boolean(id) && isAuthenticated && user?.role === 'PATIENT',
+  });
+
+  useEffect(() => {
+    if (favoriteStatus !== undefined) {
+      setIsFavorited(favoriteStatus);
+    }
+  }, [favoriteStatus]);
+
+  const favoriteMutation = useMutation({
+    mutationFn: async () => {
+      if (isFavorited) {
+        await patientService.removeFavoriteDoctor(id!);
+      } else {
+        await patientService.addFavoriteDoctor(id!);
+      }
+    },
+    onSuccess: () => {
+      setIsFavorited((prev) => !prev);
+      showToast(isFavorited ? 'Removed from favorites.' : 'Added to favorites!', 'success');
+    },
+    onError: (err) => showToast(extractErrorMessage(err), 'error'),
+  });
+
+  const handleToggleFavorite = () => {
+    if (!isAuthenticated) {
+      navigate('/login', { state: { from: { pathname: `/doctors/${id}` } } });
+      return;
+    }
+    if (user?.role !== 'PATIENT') {
+      showToast('Only patients can favorite doctors.', 'error');
+      return;
+    }
+    favoriteMutation.mutate();
+  };
 
   const { data: slots, isLoading: slotsLoading } = useQuery({
     queryKey: ['doctor-slots', id, selectedDate],
@@ -171,6 +213,21 @@ export default function DoctorDetailPage() {
               NPR {fee.toLocaleString()}{' '}
               <span className="text-sm font-body text-slate-500">consultation fee</span>
             </p>
+
+            {isAuthenticated && user?.role === 'PATIENT' && (
+              <div className="mt-4">
+                <Button
+                  variant={isFavorited ? 'outline' : 'secondary'}
+                  size="sm"
+                  onClick={handleToggleFavorite}
+                  isLoading={favoriteMutation.isPending}
+                  className={cn('w-auto', isFavorited && 'border-coral-500 text-coral-700 hover:bg-coral-50')}
+                >
+                  <Heart className={cn('h-4 w-4 mr-2', isFavorited && 'fill-coral-600 text-coral-600')} />
+                  {isFavorited ? 'Favorited' : 'Favorite doctor'}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 

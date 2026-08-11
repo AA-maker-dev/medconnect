@@ -80,9 +80,11 @@ export default function FavoriteDoctorsPage() {
           </div>
 
           <div className="mt-auto flex items-center gap-2">
-            <Button size="sm" className="flex-1">
-              Book again
-            </Button>
+            <Link to={`/doctors/${fav.doctor.id}`} className="flex-1">
+              <Button size="sm" className="w-full">
+                Book again
+              </Button>
+            </Link>
             <button
               onClick={() => removeMutation.mutate(fav.doctor.id)}
               aria-label="Remove from favorites"

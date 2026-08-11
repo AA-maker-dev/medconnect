@@ -91,6 +91,13 @@ export async function removeFavoriteDoctor(doctorId: string) {
   await api.delete(`/patients/me/favorite-doctors/${doctorId}`);
 }
 
+export async function checkFavoriteDoctor(doctorId: string) {
+  const { data } = await api.get<ApiResponse<{ isFavorited: boolean }>>(
+    `/patients/me/favorite-doctors/${doctorId}`
+  );
+  return data.data.isFavorited;
+}
+
 export async function fetchPrescriptions() {
   const { data } = await api.get<ApiResponse<Prescription[]>>('/patients/me/prescriptions');
   return data.data;

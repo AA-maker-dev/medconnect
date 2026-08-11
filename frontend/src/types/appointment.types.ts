@@ -44,6 +44,16 @@ export interface BookAppointmentPayload {
   reasonForVisit?: string;
 }
 
+export interface RescheduleAppointmentPayload {
+  appointmentId: string;
+  doctorId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  consultationType: ConsultationType;
+  reasonForVisit?: string;
+}
+
 export interface BookedAppointment {
   id: string;
   date: string;

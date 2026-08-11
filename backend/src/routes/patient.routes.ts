@@ -47,6 +47,7 @@ router.post(
   patientController.addFavoriteDoctor
 );
 router.delete('/me/favorite-doctors/:doctorId', patientController.removeFavoriteDoctor);
+router.get('/me/favorite-doctors/:doctorId', patientController.checkFavoriteDoctor);
 
 router.get('/me/prescriptions', patientController.listPrescriptions);
 router.get('/me/invoices', patientController.listInvoices);

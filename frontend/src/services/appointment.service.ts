@@ -7,6 +7,7 @@ import type {
   BookedAppointment,
   Disease,
   RecommendedDoctorsResult,
+  RescheduleAppointmentPayload,
 } from '@/types/appointment.types.ts';
 
 export async function fetchDiseases() {
@@ -37,5 +38,13 @@ export async function bookAppointment(payload: BookAppointmentPayload) {
 
 export async function fetchAppointmentById(id: string) {
   const { data } = await api.get<ApiResponse<AppointmentDetail>>(`/appointments/${id}`);
+  return data.data;
+}
+
+export async function rescheduleAppointment(payload: RescheduleAppointmentPayload) {
+  const { data } = await api.patch<ApiResponse<BookedAppointment>>(
+    `/appointments/${payload.appointmentId}/reschedule`,
+    payload
+  );
   return data.data;
 }

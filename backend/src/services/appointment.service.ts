@@ -204,6 +204,80 @@ export async function getAvailableSlots(doctorId: string, dateStr: string) {
   return slots;
 }
 
+export async function getAvailableDates(doctorId: string, startDateStr: string, endDateStr: string) {
+  const doctor = await prisma.doctor.findUnique({ where: { id: doctorId } });
+  if (!doctor) throw ApiError.notFound('Doctor not found');
+
+  const startDate = new Date(`${startDateStr}T00:00:00`);
+  const endDate = new Date(`${endDateStr}T23:59:59.999`);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+    throw ApiError.badRequest('Invalid date range');
+  }
+  if (startDate > endDate) {
+    throw ApiError.badRequest('startDate must be before endDate');
+  }
+
+  const availabilityRows = await prisma.doctorAvailability.findMany({
+    where: { doctorId, isActive: true },
+  });
+
+  if (availabilityRows.length === 0) {
+    return [];
+  }
+
+  const bookedAppointments = await prisma.appointment.findMany({
+    where: {
+      doctorId,
+      date: { gte: startDate, lte: endDate },
+      status: { in: ['PENDING', 'APPROVED', 'RESCHEDULED'] },
+    },
+    select: { date: true, startTime: true },
+  });
+
+  const bookedMap = new Map<string, Set<string>>();
+  for (const appt of bookedAppointments) {
+    const key = appt.date.toISOString().slice(0, 10);
+    if (!bookedMap.has(key)) bookedMap.set(key, new Set());
+    bookedMap.get(key)!.add(appt.startTime);
+  }
+
+  const now = new Date();
+  const availableDates: string[] = [];
+
+  for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+    const dayOfWeek = d.getDay();
+    const dateKey = d.toISOString().slice(0, 10);
+    const dayAvailability = availabilityRows.filter((row) => row.dayOfWeek === dayOfWeek);
+    if (dayAvailability.length === 0) continue;
+
+    const bookedForDay = bookedMap.get(dateKey) ?? new Set();
+    const isToday = d.toDateString() === now.toDateString();
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    let hasOpenSlot = false;
+    for (const row of dayAvailability) {
+      const start = timeToMinutes(row.startTime);
+      const end = timeToMinutes(row.endTime);
+      const step = row.slotDurationMinutes;
+      for (let t = start; t + step <= end; t += step) {
+        if (isToday && t <= nowMinutes) continue;
+        const slotStart = minutesToTime(t);
+        if (!bookedForDay.has(slotStart)) {
+          hasOpenSlot = true;
+          break;
+        }
+      }
+      if (hasOpenSlot) break;
+    }
+
+    if (hasOpenSlot) {
+      availableDates.push(dateKey);
+    }
+  }
+
+  return availableDates;
+}
+
 // ==================================================
 // Booking
 // ==================================================
@@ -304,4 +378,77 @@ export async function getAppointmentById(
   }
 
   return appointment;
+}
+
+export async function rescheduleAppointment(
+  patientId: string,
+  input: {
+    appointmentId: string;
+    doctorId: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    consultationType: 'IN_PERSON' | 'VIDEO';
+    reasonForVisit?: string;
+  }
+) {
+  const original = await prisma.appointment.findUnique({
+    where: { id: input.appointmentId },
+    include: { doctor: { select: { userId: true, verificationStatus: true, user: { select: { isActive: true } } } } },
+  });
+  if (!original) throw ApiError.notFound('Appointment not found');
+  if (original.patientId !== patientId) throw ApiError.forbidden('You do not own this appointment');
+  if (original.doctorId !== input.doctorId) throw ApiError.badRequest('Doctor does not match original appointment');
+
+  const doctor = original.doctor;
+  if (doctor.verificationStatus !== 'VERIFIED' || !doctor.user.isActive) {
+    throw ApiError.badRequest('This doctor is not currently accepting bookings');
+  }
+
+  const availableSlots = await getAvailableSlots(input.doctorId, input.date);
+  const stillAvailable = availableSlots.some((s) => s.startTime === input.startTime);
+  if (!stillAvailable) {
+    throw ApiError.conflict('This slot was just booked by someone else. Please pick another.');
+  }
+
+  const newAppointment = await prisma.appointment.create({
+    data: {
+      patientId,
+      doctorId: input.doctorId,
+      diseaseId: original.diseaseId,
+      date: new Date(`${input.date}T00:00:00`),
+      startTime: input.startTime,
+      endTime: input.endTime,
+      consultationType: input.consultationType,
+      reasonForVisit: input.reasonForVisit ?? original.reasonForVisit,
+      status: 'PENDING',
+      rescheduledFromId: original.id,
+    },
+    select: {
+      id: true,
+      date: true,
+      startTime: true,
+      endTime: true,
+      status: true,
+      consultationType: true,
+      reasonForVisit: true,
+      doctor: { select: DOCTOR_CARD_SELECT },
+    },
+  });
+
+  await prisma.appointment.update({
+    where: { id: original.id },
+    data: { status: 'RESCHEDULED' },
+  });
+
+  await prisma.notification.create({
+    data: {
+      userId: doctor.userId,
+      type: 'APPOINTMENT_RESCHEDULED',
+      title: 'Appointment rescheduled',
+      body: `A patient has requested to reschedule appointment ${original.id} to ${newAppointment.date.toDateString()} at ${newAppointment.startTime}.`,
+    },
+  });
+
+  return newAppointment;
 }

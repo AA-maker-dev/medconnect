@@ -7,6 +7,7 @@ import {
   recommendedDoctorsQuerySchema,
   availableSlotsQuerySchema,
   createAppointmentSchema,
+  rescheduleAppointmentSchema,
 } from '../validators/appointment.validator';
 
 const router = Router();
@@ -32,6 +33,15 @@ router.post(
   attachPatientProfile,
   validate(createAppointmentSchema),
   appointmentController.createAppointment
+);
+
+router.patch(
+  '/:id/reschedule',
+  authenticate,
+  authorize('PATIENT'),
+  attachPatientProfile,
+  validate(rescheduleAppointmentSchema),
+  appointmentController.rescheduleAppointment
 );
 
 // ---- Confirmation / detail (owner patient or doctor) ----

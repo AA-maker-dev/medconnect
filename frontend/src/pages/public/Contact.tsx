@@ -8,7 +8,7 @@ const CONTACT_INFO = [
   {
     icon: Mail,
     label: 'Email',
-    value: 'support@medconnect.app',
+    value: 'rautstevensr@gmail.com',
   },
   {
     icon: Phone,
@@ -39,10 +39,22 @@ export default function ContactPage() {
       return;
     }
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    setIsSubmitting(false);
-    setForm({ name: '', email: '', subject: '', message: '' });
-    showToast('Message sent! We will get back to you within 24 hours.', 'success');
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+      setForm({ name: '', email: '', subject: '', message: '' });
+      showToast('Message sent! We will get back to you within 24 hours.', 'success');
+    } catch {
+      showToast('Failed to send message. Please try again later.', 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

@@ -15,6 +15,13 @@ export const availableSlotsQuerySchema = z.object({
   }),
 });
 
+export const availableDatesQuerySchema = z.object({
+  query: z.object({
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD format'),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD format'),
+  }),
+});
+
 export const createAppointmentSchema = z.object({
   body: z.object({
     doctorId: z.string().uuid('Select a doctor'),
@@ -24,5 +31,25 @@ export const createAppointmentSchema = z.object({
     endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM 24-hour format'),
     consultationType: z.enum(['IN_PERSON', 'VIDEO']).optional().default('IN_PERSON'),
     reasonForVisit: z.string().trim().max(500).optional(),
+  }),
+});
+
+export const rescheduleAppointmentSchema = z.object({
+  body: z.object({
+    appointmentId: z.string().uuid('Invalid appointment id'),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD format'),
+    startTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM 24-hour format'),
+    endTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Use HH:MM 24-hour format'),
+    consultationType: z.enum(['IN_PERSON', 'VIDEO']).optional().default('IN_PERSON'),
+    reasonForVisit: z.string().trim().max(500).optional(),
+  }),
+});
+
+export const contactFormSchema = z.object({
+  body: z.object({
+    name: z.string().trim().min(1, 'Name is required'),
+    email: z.string().trim().email('Enter a valid email address'),
+    subject: z.string().trim().max(200).optional(),
+    message: z.string().trim().min(1, 'Message is required').max(5000),
   }),
 });
